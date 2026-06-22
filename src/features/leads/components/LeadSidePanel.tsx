@@ -6,7 +6,6 @@ import { useState } from 'react'
 import type { Lead, LeadStatus, Vehicle } from '@/shared/types'
 import { formatCurrency, formatDateTime } from '@/shared/utils/format'
 import { paths } from '@/app/routes/paths'
-import { StatusChip } from '@/shared/components'
 
 const STATUS_OPTIONS: { value: LeadStatus, label: string }[] = [
   { value: 'new', label: 'Nuevo' },
@@ -63,17 +62,33 @@ export const LeadSidePanel = ({ lead, vehicle, onChangeStatus, onAddNote }: Lead
     <Stack spacing={2} sx={{ p: 2.5, overflowY: 'auto', height: '100%' }}>
       <Card>
         <CardContent>
-          <Stack spacing={1.5}>
+          <Stack spacing={2}>
             <Box>
               <Typography variant='caption' color='text.secondary'>
                 Lead
               </Typography>
-              <Typography variant='h5'>{lead.fullName}</Typography>
+              <Typography variant='h5' sx={{ mb: 0.75 }}>
+                {lead.fullName}
+              </Typography>
+              <Chip
+                label={`Origen: ${CHANNEL_LABEL[lead.channel]}`}
+                variant='outlined'
+                size='small'
+              />
             </Box>
-            <Stack direction='row' spacing={1} flexWrap='wrap' useFlexGap>
-              <StatusChip status={lead.status} />
-              <Chip label={CHANNEL_LABEL[lead.channel]} variant='outlined' size='small' />
-            </Stack>
+            <TextField
+              select
+              label='Estado del lead'
+              value={lead.status}
+              onChange={(event) => handleStatusChange(event.target.value as LeadStatus)}
+              disabled={updatingStatus}
+            >
+              {STATUS_OPTIONS.map((option) => (
+                <MenuItem key={option.value} value={option.value}>
+                  {option.label}
+                </MenuItem>
+              ))}
+            </TextField>
             <Box>
               <Typography variant='caption' color='text.secondary'>
                 Teléfono
@@ -100,26 +115,6 @@ export const LeadSidePanel = ({ lead, vehicle, onChangeStatus, onAddNote }: Lead
               Abrir WhatsApp
             </Button>
           </Stack>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardContent>
-          <Typography variant='subtitle2' sx={{ mb: 1 }}>
-            Estado del lead
-          </Typography>
-          <TextField
-            select
-            value={lead.status}
-            onChange={(event) => handleStatusChange(event.target.value as LeadStatus)}
-            disabled={updatingStatus}
-          >
-            {STATUS_OPTIONS.map((option) => (
-              <MenuItem key={option.value} value={option.value}>
-                {option.label}
-              </MenuItem>
-            ))}
-          </TextField>
         </CardContent>
       </Card>
 

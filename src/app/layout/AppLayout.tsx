@@ -22,6 +22,7 @@ export const AppLayout = () => {
         component='main'
         sx={{
           flexGrow: 1,
+          minWidth: 0,
           width: { md: `calc(100% - ${SIDEBAR_WIDTH}px)` },
           minHeight: '100vh',
           backgroundColor: 'background.default'

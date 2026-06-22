@@ -85,7 +85,14 @@ const SidebarContent = ({ dealershipName, onItemClick }: { dealershipName: strin
 
 export const Sidebar = ({ mobileOpen, onClose, dealershipName }: SidebarProps) => {
   return (
-    <>
+    <Box
+      component='nav'
+      aria-label='Navegación principal'
+      sx={{
+        width: { md: DRAWER_WIDTH },
+        flexShrink: { md: 0 }
+      }}
+    >
       <Drawer
         variant='temporary'
         open={mobileOpen}
@@ -113,7 +120,7 @@ export const Sidebar = ({ mobileOpen, onClose, dealershipName }: SidebarProps) =
       >
         <SidebarContent dealershipName={dealershipName} />
       </Drawer>
-    </>
+    </Box>
   )
 }
 
