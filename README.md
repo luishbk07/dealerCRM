@@ -16,7 +16,62 @@ Construido para que un concesionario pueda:
 - Material UI v6 (incluyendo `Grid2`)
 - React Router v6
 - Context API para autenticación y notificaciones
-- Capa de servicios con interfaces TS (mock + LocalStorage) lista para sustituirse por una API real
+- **Supabase** (Auth + Postgres) para registro, sesión, perfiles y concesionarios
+- Capa de servicios con interfaces TS lista para sustituirse por una API real (vehículos, leads y ventas siguen siendo mock + LocalStorage para esta fase del MVP)
+
+## Configuración de Supabase
+
+1. Crea un proyecto en [supabase.com](https://supabase.com).
+2. En **Project Settings → API**, copia `Project URL` y `anon public key`.
+3. Copia `.env.example` a `.env` y rellena los valores:
+
+```bash
+VITE_SUPABASE_URL=https://your-project.supabase.co
+VITE_SUPABASE_ANON_KEY=your-anon-public-key
+```
+
+4. Ejecuta el siguiente SQL en el editor SQL de Supabase para crear las tablas y políticas:
+
+```sql
+-- profiles: una fila por usuario autenticado
+create table public.profiles (
+  id uuid primary key references auth.users(id) on delete cascade,
+  full_name text not null,
+  role text not null default 'dealer',
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+-- dealers: cada usuario tiene como máximo un concesionario
+create table public.dealers (
+  id uuid primary key default gen_random_uuid(),
+  owner_id uuid not null references auth.users(id) on delete cascade,
+  name text not null,
+  phone text,
+  address text,
+  city text,
+  logo_url text,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  unique (owner_id)
+);
+
+-- Row Level Security
+alter table public.profiles enable row level security;
+alter table public.dealers enable row level security;
+
+create policy "Profiles are visible to the owner" on public.profiles
+  for select using (auth.uid() = id);
+create policy "Profiles can be inserted by the owner" on public.profiles
+  for insert with check (auth.uid() = id);
+create policy "Profiles can be updated by the owner" on public.profiles
+  for update using (auth.uid() = id);
+
+create policy "Dealers are accessible to the owner" on public.dealers
+  for all using (auth.uid() = owner_id) with check (auth.uid() = owner_id);
+```
+
+5. (Opcional, recomendado para desarrollo) En **Auth → Providers → Email**, desactiva *Confirm email* para que el flujo de registro entre directo a onboarding sin verificación de correo.
 
 ## Scripts
 
@@ -29,9 +84,16 @@ npm run lint       # ESLint
 npm run preview    # previsualiza el build de producción
 ```
 
-## Acceso al demo
+## Flujo de la aplicación
 
-En la pantalla de login usa cualquier correo válido y una contraseña con 4 o más caracteres. Los valores precargados sirven para entrar de inmediato.
+1. El usuario abre la app y puede iniciar sesión o registrarse.
+2. **Registro** (`/register`) → Supabase Auth crea el usuario → se crea su `profile` con rol `dealer`.
+3. Si el usuario aún no tiene un `dealer`, se le redirige a **Onboarding** (`/onboarding`) para crear su concesionario.
+4. Con el dealer creado, accede al **Dashboard** (`/`) y al resto de la app.
+5. Si un usuario sin sesión intenta entrar a una ruta protegida, se redirige a `/login`.
+6. Si un usuario autenticado sin dealer accede a rutas internas, se redirige a `/onboarding`.
+
+Estas reglas las implementan `AuthGuard` y `DealerGuard` en `src/app/routes/`.
 
 ## Estructura del proyecto
 
@@ -39,13 +101,20 @@ En la pantalla de login usa cualquier correo válido y una contraseña con 4 o m
 src/
   app/                  # composición de la aplicación
     layout/             # AppLayout, Sidebar, Topbar
-    routes/             # AppRoutes, ProtectedRoute, paths
+    routes/             # AppRoutes, AuthGuard, DealerGuard, paths
     theme.ts            # tema MUI (Inter, paleta SaaS limpia)
     App.tsx             # punto de entrada de la app
   features/             # cada feature es autocontenida
     auth/
-      context/          # AuthProvider + useAuth
-      pages/            # LoginPage
+      components/       # AuthCardShell (layout reutilizado por login/register)
+      context/          # AuthProvider + useAuth (sesión, perfil, dealer)
+      services/         # authService (Supabase), profileService
+      utils/            # validation (email, password, registro)
+      pages/            # LoginPage, RegisterPage
+    dealers/
+      hooks/            # useDealerForm
+      services/         # dealerService (CRUD vía Supabase)
+      pages/            # OnboardingPage
     dashboard/
       hooks/            # useDashboardData
       components/       # RecentLeadsList, PipelineSnapshot

@@ -10,7 +10,6 @@ export type { SaleService } from './saleService'
 export { adGeneratorService } from './adGeneratorService'
 export type { AdGeneratorService, GeneratedAd } from './adGeneratorService'
 
-export { authService } from './authService'
-export type { AuthService, AuthCredentials } from './authService'
-
 export { storage } from './storage'
+
+export { supabase, isSupabaseConfigured } from './supabase'

@@ -1,22 +1,23 @@
-import { Box, Button, Card, CardContent, Container, Stack, TextField, Typography, Alert, InputAdornment } from '@mui/material'
-import DirectionsCarFilledIcon from '@mui/icons-material/DirectionsCarFilled'
+import { Alert, Box, Button, InputAdornment, Link, Stack, TextField } from '@mui/material'
 import EmailOutlinedIcon from '@mui/icons-material/EmailOutlined'
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined'
 import { useState, type FormEvent } from 'react'
-import { Navigate, useLocation, useNavigate } from 'react-router-dom'
+import { Link as RouterLink, Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { paths } from '@/app/routes/paths'
+import { AuthCardShell } from '../components/AuthCardShell'
+import { isValidEmail } from '../utils/validation'
 
 interface LocationState {
   from?: { pathname: string }
 }
 
 export const LoginPage = () => {
-  const { isAuthenticated, signIn } = useAuth()
+  const { isAuthenticated, signIn, configError } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
-  const [email, setEmail] = useState('demo@dealercrm.do')
-  const [password, setPassword] = useState('demo1234')
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -27,9 +28,19 @@ export const LoginPage = () => {
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault()
     setError(null)
+
+    if (!isValidEmail(email)) {
+      setError('Ingresa un correo válido')
+      return
+    }
+    if (!password) {
+      setError('Ingresa tu contraseña')
+      return
+    }
+
     setSubmitting(true)
     try {
-      await signIn(email, password)
+      await signIn(email.trim(), password)
       const target = (location.state as LocationState | undefined)?.from?.pathname ?? paths.dashboard
       navigate(target, { replace: true })
     } catch (err) {
@@ -40,91 +51,71 @@ export const LoginPage = () => {
   }
 
   return (
-    <Box
-      sx={{
-        minHeight: '100vh',
-        display: 'flex',
-        alignItems: 'center',
-        background: 'linear-gradient(135deg, #EFF6FF 0%, #F8FAFC 100%)',
-        py: 4
-      }}
+    <AuthCardShell
+      title='Bienvenido de nuevo'
+      subtitle='Inicia sesión para gestionar tu inventario y tus leads.'
+      footer={
+        <>
+          ¿No tienes cuenta?{' '}
+          <Link component={RouterLink} to={paths.register} underline='hover' sx={{ fontWeight: 600 }}>
+            Crear cuenta
+          </Link>
+        </>
+      }
     >
-      <Container maxWidth='sm'>
-        <Stack spacing={4}>
-          <Stack direction='row' spacing={1.5} alignItems='center' justifyContent='center'>
-            <Box
-              sx={{
-                width: 44,
-                height: 44,
-                borderRadius: 2,
-                backgroundColor: 'primary.main',
-                color: 'primary.contrastText',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center'
-              }}
+      {configError ? <Alert severity='warning'>{configError}</Alert> : null}
+      {error ? <Alert severity='error'>{error}</Alert> : null}
+
+      <Box component='form' onSubmit={handleSubmit} noValidate>
+        <Stack spacing={2}>
+          <TextField
+            label='Correo electrónico'
+            type='email'
+            value={email}
+            onChange={(event) => setEmail(event.target.value)}
+            required
+            autoComplete='email'
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position='start'>
+                  <EmailOutlinedIcon fontSize='small' color='action' />
+                </InputAdornment>
+              )
+            }}
+          />
+          <TextField
+            label='Contraseña'
+            type='password'
+            value={password}
+            onChange={(event) => setPassword(event.target.value)}
+            required
+            autoComplete='current-password'
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position='start'>
+                  <LockOutlinedIcon fontSize='small' color='action' />
+                </InputAdornment>
+              )
+            }}
+          />
+
+          <Stack spacing={1.5}>
+            <Button type='submit' variant='contained' size='large' fullWidth disabled={submitting}>
+              {submitting ? 'Iniciando sesión…' : 'Entrar'}
+            </Button>
+            <Button
+              component={RouterLink}
+              to={paths.register}
+              variant='text'
+              size='large'
+              fullWidth
+              disabled={submitting}
             >
-              <DirectionsCarFilledIcon />
-            </Box>
-            <Typography variant='h4' sx={{ fontWeight: 700 }}>
-              Dealer CRM
-            </Typography>
+              ¿No tienes cuenta? Crear cuenta
+            </Button>
           </Stack>
-          <Card>
-            <CardContent sx={{ p: { xs: 3, sm: 4 } }}>
-              <Stack spacing={3}>
-                <Box>
-                  <Typography variant='h4'>Bienvenido de nuevo</Typography>
-                  <Typography variant='body2' color='text.secondary' sx={{ mt: 0.5 }}>
-                    Inicia sesión para gestionar tu inventario y tus leads.
-                  </Typography>
-                </Box>
-                {error ? <Alert severity='error'>{error}</Alert> : null}
-                <Box component='form' onSubmit={handleSubmit}>
-                  <Stack spacing={2}>
-                    <TextField
-                      label='Correo electrónico'
-                      type='email'
-                      value={email}
-                      onChange={(event) => setEmail(event.target.value)}
-                      required
-                      autoComplete='email'
-                      InputProps={{
-                        startAdornment: (
-                          <InputAdornment position='start'>
-                            <EmailOutlinedIcon fontSize='small' color='action' />
-                          </InputAdornment>
-                        )
-                      }}
-                    />
-                    <TextField
-                      label='Contraseña'
-                      type='password'
-                      value={password}
-                      onChange={(event) => setPassword(event.target.value)}
-                      required
-                      autoComplete='current-password'
-                      InputProps={{
-                        startAdornment: (
-                          <InputAdornment position='start'>
-                            <LockOutlinedIcon fontSize='small' color='action' />
-                          </InputAdornment>
-                        )
-                      }}
-                    />
-                    <Button type='submit' variant='contained' size='large' disabled={submitting} fullWidth>
-                      {submitting ? 'Iniciando sesión…' : 'Entrar'}
-                    </Button>
-                  </Stack>
-                </Box>
-                <Typography variant='caption' color='text.secondary' sx={{ textAlign: 'center' }}>
-                  Demo: usa cualquier correo válido y una contraseña de 4 caracteres o más.
-                </Typography>
-              </Stack>
-            </CardContent>
-          </Card>
         </Stack>
-      </Container>
-    </Box>
+      </Box>
+    </AuthCardShell>
   )
 }

@@ -6,7 +6,7 @@ import { Sidebar, SIDEBAR_WIDTH } from './Sidebar'
 import { Topbar } from './Topbar'
 
 export const AppLayout = () => {
-  const { user } = useAuth()
+  const { user, dealer } = useAuth()
   const [mobileOpen, setMobileOpen] = useState(false)
 
   if (!user) return null
@@ -16,7 +16,7 @@ export const AppLayout = () => {
 
   return (
     <Box sx={{ display: 'flex', minHeight: '100vh' }}>
-      <Sidebar mobileOpen={mobileOpen} onClose={closeMobile} dealershipName={user.dealershipName} />
+      <Sidebar mobileOpen={mobileOpen} onClose={closeMobile} dealershipName={dealer?.name ?? 'Mi concesionario'} />
       <Topbar user={user} onToggleMobile={toggleMobile} />
       <Box
         component='main'

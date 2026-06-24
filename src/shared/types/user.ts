@@ -1,10 +1,17 @@
-export type UserRole = 'admin' | 'sales'
+export type UserRole = 'dealer' | 'admin' | 'sales'
 
 export interface User {
   id: string
-  fullName: string
   email: string
+  fullName: string
   role: UserRole
-  dealershipName: string
   avatarUrl?: string
+}
+
+export interface Profile {
+  id: string
+  fullName: string
+  role: UserRole
+  createdAt: string
+  updatedAt: string
 }

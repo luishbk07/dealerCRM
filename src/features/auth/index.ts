@@ -1,2 +1,5 @@
 export { LoginPage } from './pages/LoginPage'
+export { RegisterPage } from './pages/RegisterPage'
 export { AuthProvider, useAuth } from './context/AuthContext'
+export { authService, profileService } from './services'
+export type { AuthService, ProfileService } from './services'

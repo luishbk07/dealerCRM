@@ -1,5 +1,7 @@
 export const paths = {
   login: '/login',
+  register: '/register',
+  onboarding: '/onboarding',
   dashboard: '/',
   vehicles: '/vehicles',
   vehicleNew: '/vehicles/new',
