@@ -48,11 +48,10 @@ create table public.dealers (
   owner_id uuid not null references auth.users(id) on delete cascade,
   name text not null,
   phone text,
+  whatsapp text,
   address text,
-  city text,
   logo_url text,
   created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now(),
   unique (owner_id)
 );
 
@@ -72,6 +71,8 @@ create policy "Dealers are accessible to the owner" on public.dealers
 ```
 
 5. (Opcional, recomendado para desarrollo) En **Auth → Providers → Email**, desactiva *Confirm email* para que el flujo de registro entre directo a onboarding sin verificación de correo.
+
+> El esquema de la tabla `dealers` es la única fuente de verdad. Cualquier campo nuevo (ej. `city`, `updated_at`, etc.) requiere primero un cambio de esquema en Supabase, y luego propagarlo a tipos, DTOs y servicios.
 
 ## Scripts
 
@@ -93,7 +94,12 @@ npm run preview    # previsualiza el build de producción
 5. Si un usuario sin sesión intenta entrar a una ruta protegida, se redirige a `/login`.
 6. Si un usuario autenticado sin dealer accede a rutas internas, se redirige a `/onboarding`.
 
-Estas reglas las implementan `AuthGuard` y `DealerGuard` en `src/app/routes/`.
+Estas reglas las implementan:
+
+- `AuthGuard` en `src/app/routes/AuthGuard.tsx` (autenticación)
+- `DealerGuard` en `src/shared/guards/DealerGuard.tsx` (existencia de concesionario)
+
+Las rutas internas se componen como `<AuthGuard><DealerGuard>ProtectedPage</DealerGuard></AuthGuard>`.
 
 ## Estructura del proyecto
 
@@ -101,7 +107,7 @@ Estas reglas las implementan `AuthGuard` y `DealerGuard` en `src/app/routes/`.
 src/
   app/                  # composición de la aplicación
     layout/             # AppLayout, Sidebar, Topbar
-    routes/             # AppRoutes, AuthGuard, DealerGuard, paths
+    routes/             # AppRoutes, AuthGuard, paths
     theme.ts            # tema MUI (Inter, paleta SaaS limpia)
     App.tsx             # punto de entrada de la app
   features/             # cada feature es autocontenida
@@ -111,10 +117,11 @@ src/
       services/         # authService (Supabase), profileService
       utils/            # validation (email, password, registro)
       pages/            # LoginPage, RegisterPage
-    dealers/
-      hooks/            # useDealerForm
-      services/         # dealerService (CRUD vía Supabase)
-      pages/            # OnboardingPage
+    onboarding/
+      types/            # DealerOnboardingFormValues + validación
+      hooks/            # useDealerOnboarding (form + submit + errores)
+      services/         # dealerService (getDealerByOwnerId, createDealer)
+      pages/            # DealerOnboardingPage
     dashboard/
       hooks/            # useDashboardData
       components/       # RecentLeadsList, PipelineSnapshot
@@ -132,6 +139,7 @@ src/
       components/       # MonthlyChart
       pages/            # SalesPage
   shared/
+    guards/             # DealerGuard (enforces dealer existence)
     components/         # PageHeader, StatusChip, KpiCard, EmptyState, LoadingState, ConfirmDialog
     hooks/              # useAsync, useToast
     services/           # vehicleService, leadService, saleService, authService, adGeneratorService, storage, seedData

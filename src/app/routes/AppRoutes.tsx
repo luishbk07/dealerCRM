@@ -1,10 +1,10 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
 import { AppLayout } from '@/app/layout/AppLayout'
 import { AuthGuard } from './AuthGuard'
-import { DealerGuard } from './DealerGuard'
+import { DealerGuard } from '@/shared/guards'
 import { paths } from './paths'
 import { LoginPage, RegisterPage } from '@/features/auth'
-import { OnboardingPage } from '@/features/dealers'
+import { DealerOnboardingPage } from '@/features/onboarding'
 import { DashboardPage } from '@/features/dashboard'
 import { VehiclesListPage, VehicleCreatePage, VehicleEditPage, PublicVehiclePage } from '@/features/vehicles'
 import { LeadsInboxPage } from '@/features/leads'
@@ -18,7 +18,7 @@ export const AppRoutes = () => {
       <Route path={paths.vehiclePublic()} element={<PublicVehiclePage />} />
 
       <Route element={<AuthGuard />}>
-        <Route path={paths.onboarding} element={<OnboardingPage />} />
+        <Route path={paths.onboarding} element={<DealerOnboardingPage />} />
 
         <Route
           element={

@@ -4,7 +4,7 @@ import { supabase, isSupabaseConfigured } from '@/shared/services/supabase'
 import type { Dealer, Profile, User } from '@/shared/types'
 import { authService, mapSupabaseUserToUser } from '../services/authService'
 import { profileService } from '../services/profileService'
-import { dealerService } from '@/features/dealers/services/dealerService'
+import { dealerService } from '@/features/onboarding/services/dealerService'
 
 interface AuthContextValue {
   user: User | null
@@ -54,7 +54,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const fallbackName = (current.user_metadata?.full_name as string | undefined)?.trim() || current.email || 'Usuario'
       const [resolvedProfile, resolvedDealer] = await Promise.all([
         profileService.ensureExists({ id: current.id, fullName: fallbackName }),
-        dealerService.getByOwner(current.id)
+        dealerService.getDealerByOwnerId(current.id)
       ])
       setProfile(resolvedProfile)
       setDealer(resolvedDealer)
@@ -128,7 +128,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const refreshDealer = useCallback(async () => {
     if (!supabaseUser) return
-    const next = await dealerService.getByOwner(supabaseUser.id)
+    const next = await dealerService.getDealerByOwnerId(supabaseUser.id)
     setDealer(next)
   }, [supabaseUser])
 
