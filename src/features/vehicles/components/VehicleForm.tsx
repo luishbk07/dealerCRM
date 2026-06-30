@@ -1,8 +1,17 @@
-import { Box, Button, Card, CardContent, Divider, FormControlLabel, MenuItem, Stack, Switch, TextField, Typography } from '@mui/material'
+import { Box, Button, Card, CardContent, Divider, FormControlLabel, InputAdornment, MenuItem, Stack, Switch, TextField, ToggleButton, ToggleButtonGroup, Typography } from '@mui/material'
 import Grid from '@mui/material/Grid2'
 import SaveOutlinedIcon from '@mui/icons-material/SaveOutlined'
 import { useEffect, useState, type FormEvent } from 'react'
 import type { VehicleImage, VehicleWithImages } from '@/shared/types'
+import { formatCurrencyInput, formatNumericInput, stripCurrencyInput, stripNumericInput } from '@/shared/utils/format'
+import {
+  BODY_STYLE_OPTIONS,
+  DRIVETRAIN_OPTIONS,
+  FUEL_TYPE_OPTIONS,
+  mergeWithCurrentValue,
+  TRANSMISSION_OPTIONS,
+  type VehicleFieldOption
+} from '../constants/vehicleFieldOptions'
 import { ImageUploader, type PendingImage } from './ImageUploader'
 import { useVehicleForm, toFormPayload, type VehicleFormValues } from '../hooks/useVehicleForm'
 import type { VehicleFormPayload, VehicleImageUpload } from '../services/vehicleService'
@@ -91,6 +100,7 @@ export const VehicleForm = ({
     const stringValue = typeof value === 'string' ? value : ''
     return (
       <TextField
+        fullWidth
         label={label}
         type={options.type ?? 'text'}
         value={stringValue}
@@ -100,6 +110,84 @@ export const VehicleForm = ({
         multiline={options.multiline}
         minRows={options.minRows}
       />
+    )
+  }
+
+  const renderMileage = () => {
+    const isKm = form.values.mileageUnit === 'km'
+    return (
+      <TextField
+        fullWidth
+        label={isKm ? 'Kilometraje' : 'Millaje'}
+        value={formatNumericInput(form.values.mileage)}
+        onChange={(event) => form.setField('mileage', stripNumericInput(event.target.value))}
+        error={Boolean(form.errors.mileage)}
+        helperText={form.errors.mileage ?? (isKm ? 'Se guarda en kilómetros' : 'Se convertirá a km al guardar')}
+        inputMode='numeric'
+        InputProps={{
+          endAdornment: (
+            <InputAdornment position='end'>
+              <ToggleButtonGroup
+                size='small'
+                exclusive
+                value={form.values.mileageUnit}
+                onChange={(_, unit) => {
+                  if (unit) form.setMileageUnit(unit)
+                }}
+                aria-label='Unidad de kilometraje'
+              >
+                <ToggleButton value='km' aria-label='Kilómetros'>
+                  km
+                </ToggleButton>
+                <ToggleButton value='mi' aria-label='Millas'>
+                  mi
+                </ToggleButton>
+              </ToggleButtonGroup>
+            </InputAdornment>
+          )
+        }}
+      />
+    )
+  }
+
+  const renderCurrency = (field: 'price' | 'salePrice', label: string) => (
+    <TextField
+      fullWidth
+      label={label}
+      value={formatCurrencyInput(form.values[field])}
+      onChange={(event) => form.setField(field, stripCurrencyInput(event.target.value))}
+      error={Boolean(form.errors[field])}
+      helperText={form.errors[field]}
+      inputMode='numeric'
+      InputProps={{
+        startAdornment: <InputAdornment position='start'>RD$</InputAdornment>
+      }}
+    />
+  )
+
+  const renderSelect = (
+    field: 'transmission' | 'fuelType' | 'bodyStyle' | 'drivetrain',
+    label: string,
+    options: VehicleFieldOption[]
+  ) => {
+    const value = form.values[field]
+    const mergedOptions = mergeWithCurrentValue(options, value)
+    return (
+      <TextField
+        fullWidth
+        select
+        label={label}
+        value={value}
+        onChange={(event) => form.setField(field, event.target.value)}
+        error={Boolean(form.errors[field])}
+        helperText={form.errors[field]}
+      >
+        {mergedOptions.map((option) => (
+          <MenuItem key={option.value || '__empty__'} value={option.value}>
+            {option.label}
+          </MenuItem>
+        ))}
+      </TextField>
     )
   }
 
@@ -114,13 +202,14 @@ export const VehicleForm = ({
                 <Grid size={{ xs: 12, sm: 6 }}>{renderText('brand', 'Marca')}</Grid>
                 <Grid size={{ xs: 12, sm: 6 }}>{renderText('model', 'Modelo')}</Grid>
                 <Grid size={{ xs: 12, sm: 4 }}>{renderText('year', 'Año', { type: 'number' })}</Grid>
-                <Grid size={{ xs: 12, sm: 4 }}>{renderText('price', 'Precio (DOP)', { type: 'number' })}</Grid>
-                <Grid size={{ xs: 12, sm: 4 }}>{renderText('salePrice', 'Precio de oferta (DOP)', { type: 'number' })}</Grid>
-                <Grid size={{ xs: 12, sm: 4 }}>{renderText('mileage', 'Kilometraje', { type: 'number' })}</Grid>
-                <Grid size={{ xs: 12, sm: 4 }}>{renderText('transmission', 'Transmisión', { helperText: 'p. ej. automatic / manual' })}</Grid>
-                <Grid size={{ xs: 12, sm: 4 }}>{renderText('fuelType', 'Combustible', { helperText: 'p. ej. gasoline, diesel, hybrid' })}</Grid>
+                <Grid size={{ xs: 12, sm: 4 }}>{renderCurrency('price', 'Precio')}</Grid>
+                <Grid size={{ xs: 12, sm: 4 }}>{renderCurrency('salePrice', 'Precio de oferta')}</Grid>
+                <Grid size={{ xs: 12, sm: 4 }}>{renderMileage()}</Grid>
+                <Grid size={{ xs: 12, sm: 4 }}>{renderSelect('transmission', 'Transmisión', TRANSMISSION_OPTIONS)}</Grid>
+                <Grid size={{ xs: 12, sm: 4 }}>{renderSelect('fuelType', 'Combustible', FUEL_TYPE_OPTIONS)}</Grid>
                 <Grid size={{ xs: 12, sm: 4 }}>
                   <TextField
+                    fullWidth
                     select
                     label='Estado'
                     value={form.values.status}
@@ -138,8 +227,8 @@ export const VehicleForm = ({
                 <Grid size={{ xs: 12, sm: 4 }}>{renderText('vin', 'VIN')}</Grid>
                 <Grid size={{ xs: 12, sm: 4 }}>{renderText('stockNumber', 'Stock #')}</Grid>
                 <Grid size={{ xs: 12, sm: 4 }}>{renderText('trim', 'Versión / Trim')}</Grid>
-                <Grid size={{ xs: 12, sm: 4 }}>{renderText('bodyStyle', 'Carrocería')}</Grid>
-                <Grid size={{ xs: 12, sm: 4 }}>{renderText('drivetrain', 'Tracción')}</Grid>
+                <Grid size={{ xs: 12, sm: 4 }}>{renderSelect('bodyStyle', 'Carrocería', BODY_STYLE_OPTIONS)}</Grid>
+                <Grid size={{ xs: 12, sm: 4 }}>{renderSelect('drivetrain', 'Tracción', DRIVETRAIN_OPTIONS)}</Grid>
                 <Grid size={{ xs: 12, sm: 4 }}>{renderText('engine', 'Motor')}</Grid>
                 <Grid size={{ xs: 12, sm: 6 }}>{renderText('exteriorColor', 'Color exterior')}</Grid>
                 <Grid size={{ xs: 12, sm: 6 }}>{renderText('interiorColor', 'Color interior')}</Grid>

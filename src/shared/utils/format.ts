@@ -16,6 +16,32 @@ export const formatNumber = (value: number | null | undefined): string => {
   return numberFormatter.format(value)
 }
 
+/** Keeps digits only — used as the raw form value for currency fields. */
+export const stripCurrencyInput = (value: string): string => value.replace(/\D/g, '')
+
+/** Formats digit-only currency input for display (e.g. "1500000" → "1,500,000"). */
+export const formatCurrencyInput = (digits: string): string => {
+  const normalized = stripCurrencyInput(digits)
+  if (!normalized) return ''
+  const amount = Number(normalized)
+  if (!Number.isFinite(amount)) return ''
+  return numberFormatter.format(amount)
+}
+
+export const numberToCurrencyInputDigits = (value: number | null | undefined): string => {
+  if (value === null || value === undefined) return ''
+  return String(Math.round(value))
+}
+
+export const stripNumericInput = stripCurrencyInput
+export const formatNumericInput = formatCurrencyInput
+export const numberToNumericInputDigits = numberToCurrencyInputDigits
+
+const KM_PER_MILE = 1.609344
+
+export const milesToKm = (miles: number): number => Math.round(miles * KM_PER_MILE)
+export const kmToMiles = (km: number): number => Math.round(km / KM_PER_MILE)
+
 export const formatDate = (iso: string | null | undefined): string => {
   if (!iso) return '—'
   const date = new Date(iso)
