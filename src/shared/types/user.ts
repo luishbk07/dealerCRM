@@ -10,8 +10,8 @@ export interface User {
 
 export interface Profile {
   id: string
-  fullName: string
-  role: UserRole
+  fullName: string | null
+  role: string
+  dealerId: string | null
   createdAt: string
-  updatedAt: string
 }

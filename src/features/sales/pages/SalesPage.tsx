@@ -1,22 +1,31 @@
-import { Alert, Box, Card, CardContent, Paper, Stack, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Typography } from '@mui/material'
+import { Alert, Box, Card, CardContent, Pagination, Paper, Stack, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Typography } from '@mui/material'
 import Grid from '@mui/material/Grid2'
 import PaidOutlinedIcon from '@mui/icons-material/PaidOutlined'
 import ReceiptLongOutlinedIcon from '@mui/icons-material/ReceiptLongOutlined'
 import TrendingUpOutlinedIcon from '@mui/icons-material/TrendingUpOutlined'
+import { useState } from 'react'
 import { EmptyState, KpiCard, LoadingState, PageHeader } from '@/shared/components'
 import { formatCurrency, formatDate } from '@/shared/utils/format'
-import { useSalesData } from '../hooks/useSalesData'
+import { useSales } from '../hooks/useSales'
+import { useDashboardStats } from '@/features/dashboard/hooks/useDashboardStats'
 import { MonthlyChart } from '../components/MonthlyChart'
 
+const PAGE_SIZE = 25
+
 export const SalesPage = () => {
-  const { data, loading, error } = useSalesData()
+  const [page, setPage] = useState(0)
+  const salesQuery = useSales({ page, pageSize: PAGE_SIZE })
+  const dashboardQuery = useDashboardStats()
 
-  if (loading) return <LoadingState message='Cargando ventas…' />
-  if (error) return <Alert severity='error'>{error.message}</Alert>
-  if (!data) return null
+  if (salesQuery.isLoading || dashboardQuery.isLoading) return <LoadingState message='Cargando ventas…' />
+  if (salesQuery.isError) return <Alert severity='error'>{(salesQuery.error as Error).message}</Alert>
+  if (dashboardQuery.isError) return <Alert severity='error'>{(dashboardQuery.error as Error).message}</Alert>
 
-  const { sales, vehiclesById, currentMonth, totalRevenue, monthlyBreakdown } = data
-  const averageTicket = sales.length === 0 ? 0 : Math.round(totalRevenue / sales.length)
+  const sales = salesQuery.data?.items ?? []
+  const total = salesQuery.data?.total ?? 0
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE))
+  const stats = dashboardQuery.data?.stats
+  const monthly = dashboardQuery.data?.monthlySales ?? []
 
   return (
     <Box>
@@ -26,16 +35,16 @@ export const SalesPage = () => {
         <Grid size={{ xs: 12, sm: 6, md: 4 }}>
           <KpiCard
             label='Ventas del mes'
-            value={currentMonth.count}
+            value={stats?.monthlySalesCount ?? 0}
             icon={<PaidOutlinedIcon />}
             accentColor='#10B981'
-            trend={currentMonth.revenue > 0 ? formatCurrency(currentMonth.revenue) : undefined}
+            trend={stats && stats.monthlyRevenue > 0 ? formatCurrency(stats.monthlyRevenue) : undefined}
           />
         </Grid>
         <Grid size={{ xs: 12, sm: 6, md: 4 }}>
           <KpiCard
             label='Ingresos acumulados'
-            value={formatCurrency(totalRevenue)}
+            value={formatCurrency(stats?.totalRevenue ?? 0)}
             icon={<TrendingUpOutlinedIcon />}
             accentColor='#2563EB'
           />
@@ -43,7 +52,7 @@ export const SalesPage = () => {
         <Grid size={{ xs: 12, sm: 6, md: 4 }}>
           <KpiCard
             label='Ticket promedio'
-            value={formatCurrency(averageTicket)}
+            value={formatCurrency(stats?.averageSalePrice ?? 0)}
             icon={<ReceiptLongOutlinedIcon />}
             accentColor='#F59E0B'
           />
@@ -51,7 +60,7 @@ export const SalesPage = () => {
       </Grid>
 
       <Box sx={{ mb: 3 }}>
-        <MonthlyChart data={monthlyBreakdown} />
+        <MonthlyChart data={monthly} />
       </Box>
 
       <Card>
@@ -66,52 +75,54 @@ export const SalesPage = () => {
             <Box sx={{ p: 3 }}>
               <EmptyState
                 title='Aún no tienes ventas registradas'
-                description='Cuando un lead se cierre como vendido aparecerá aquí.'
+                description='Cuando registres una venta aparecerá aquí.'
               />
             </Box>
           ) : (
-            <TableContainer component={Paper} sx={{ border: 'none', borderRadius: 0 }}>
-              <Table>
-                <TableHead>
-                  <TableRow>
-                    <TableCell>Vehículo</TableCell>
-                    <TableCell>Comprador</TableCell>
-                    <TableCell align='right'>Precio final</TableCell>
-                    <TableCell align='right'>Fecha</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {sales.map((sale) => {
-                    const vehicle = vehiclesById.get(sale.vehicleId)
-                    return (
+            <>
+              <TableContainer component={Paper} sx={{ border: 'none', borderRadius: 0 }}>
+                <Table>
+                  <TableHead>
+                    <TableRow>
+                      <TableCell>Vehículo</TableCell>
+                      <TableCell>Lead</TableCell>
+                      <TableCell align='right'>Precio</TableCell>
+                      <TableCell align='right'>Fecha</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {sales.map((sale) => (
                       <TableRow key={sale.id} hover>
                         <TableCell>
-                          {vehicle ? (
-                            <Stack>
-                              <Typography variant='body2' sx={{ fontWeight: 500 }}>
-                                {vehicle.brand} {vehicle.model}
-                              </Typography>
-                              <Typography variant='caption' color='text.secondary'>
-                                {vehicle.year}
-                              </Typography>
-                            </Stack>
-                          ) : (
-                            <Typography variant='body2' color='text.secondary'>
-                              Vehículo no disponible
-                            </Typography>
-                          )}
+                          <Typography variant='body2' color='text.secondary'>
+                            {sale.vehicleId ?? '—'}
+                          </Typography>
                         </TableCell>
-                        <TableCell>{sale.buyerName}</TableCell>
+                        <TableCell>
+                          <Typography variant='body2' color='text.secondary'>
+                            {sale.leadId ?? '—'}
+                          </Typography>
+                        </TableCell>
                         <TableCell align='right' sx={{ fontWeight: 600, color: 'success.main' }}>
-                          {formatCurrency(sale.finalPrice)}
+                          {formatCurrency(sale.price)}
                         </TableCell>
                         <TableCell align='right'>{formatDate(sale.soldAt)}</TableCell>
                       </TableRow>
-                    )
-                  })}
-                </TableBody>
-              </Table>
-            </TableContainer>
+                    ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+              {totalPages > 1 ? (
+                <Box sx={{ p: 2, display: 'flex', justifyContent: 'center' }}>
+                  <Pagination
+                    count={totalPages}
+                    page={page + 1}
+                    onChange={(_, value) => setPage(value - 1)}
+                    color='primary'
+                  />
+                </Box>
+              ) : null}
+            </>
           )}
         </CardContent>
       </Card>

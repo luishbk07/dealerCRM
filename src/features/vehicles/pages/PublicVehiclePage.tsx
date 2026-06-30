@@ -7,27 +7,18 @@ import CalendarMonthOutlinedIcon from '@mui/icons-material/CalendarMonthOutlined
 import WhatsAppIcon from '@mui/icons-material/WhatsApp'
 import SendOutlinedIcon from '@mui/icons-material/SendOutlined'
 import DirectionsCarFilledIcon from '@mui/icons-material/DirectionsCarFilled'
-import { useEffect, useState, type ReactNode } from 'react'
+import { useState, type ReactNode } from 'react'
 import { useParams } from 'react-router-dom'
 import { LoadingState } from '@/shared/components'
-import { leadService, vehicleService } from '@/shared/services'
-import type { Vehicle } from '@/shared/types'
+import type { VehicleWithImages } from '@/shared/types'
 import { formatCurrency, formatNumber } from '@/shared/utils/format'
 import { useToast } from '@/shared/hooks/useToast'
-
-const FUEL_LABEL: Record<Vehicle['fuelType'], string> = {
-  gasoline: 'Gasolina',
-  diesel: 'Diésel',
-  hybrid: 'Híbrido',
-  electric: 'Eléctrico'
-}
-
-const TRANSMISSION_LABEL: Record<Vehicle['transmission'], string> = {
-  automatic: 'Automática',
-  manual: 'Manual'
-}
+import { useVehicle } from '../hooks/useVehicle'
+import { vehicleService } from '../services/vehicleService'
+import { leadService } from '@/features/leads/services/leadService'
 
 const PLACEHOLDER_IMAGE = 'https://placehold.co/1200x720/E2E8F0/64748B?text=Sin+imagen'
+const LEAD_SOURCE_PUBLIC = 'website'
 
 interface SpecBlockProps {
   icon: ReactNode
@@ -63,14 +54,16 @@ const SpecBlock = ({ icon, label, value }: SpecBlockProps) => {
 }
 
 interface ImageGalleryProps {
-  images: string[]
-  altBase: string
+  vehicle: VehicleWithImages
 }
 
-const ImageGallery = ({ images, altBase }: ImageGalleryProps) => {
+const ImageGallery = ({ vehicle }: ImageGalleryProps) => {
+  const urls = vehicle.images.length > 0
+    ? vehicle.images.map((image) => vehicleService.resolveImageUrl(image))
+    : [PLACEHOLDER_IMAGE]
   const [active, setActive] = useState(0)
-  const display = images.length > 0 ? images : [PLACEHOLDER_IMAGE]
-  const current = display[active] ?? display[0]
+  const current = urls[active] ?? urls[0]
+  const altBase = `${vehicle.brand} ${vehicle.model}`
 
   return (
     <Stack spacing={1.5}>
@@ -83,18 +76,13 @@ const ImageGallery = ({ images, altBase }: ImageGalleryProps) => {
           aspectRatio: '16 / 10'
         }}
       >
-        <Box
-          component='img'
-          src={current}
-          alt={altBase}
-          sx={{ width: '100%', height: '100%', objectFit: 'cover' }}
-        />
+        <Box component='img' src={current} alt={altBase} sx={{ width: '100%', height: '100%', objectFit: 'cover' }} />
       </Box>
-      {display.length > 1 ? (
+      {urls.length > 1 ? (
         <Stack direction='row' spacing={1} sx={{ overflowX: 'auto', pb: 0.5 }}>
-          {display.map((image, index) => (
+          {urls.map((url, index) => (
             <Box
-              key={`${image}-${index}`}
+              key={`${url}-${index}`}
               component='button'
               onClick={() => setActive(index)}
               sx={{
@@ -110,12 +98,7 @@ const ImageGallery = ({ images, altBase }: ImageGalleryProps) => {
               }}
               aria-label={`Imagen ${index + 1}`}
             >
-              <Box
-                component='img'
-                src={image}
-                alt={`${altBase} ${index + 1}`}
-                sx={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
-              />
+              <Box component='img' src={url} alt={`${altBase} ${index + 1}`} sx={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
             </Box>
           ))}
         </Stack>
@@ -125,15 +108,14 @@ const ImageGallery = ({ images, altBase }: ImageGalleryProps) => {
 }
 
 interface RequestInfoFormProps {
-  vehicle: Vehicle
+  vehicle: VehicleWithImages
 }
 
 const RequestInfoForm = ({ vehicle }: RequestInfoFormProps) => {
   const { showToast } = useToast()
   const [fullName, setFullName] = useState('')
   const [phone, setPhone] = useState('')
-  const [email, setEmail] = useState('')
-  const [message, setMessage] = useState(`Hola, me interesa el ${vehicle.brand} ${vehicle.model} ${vehicle.year}.`)
+  const [message, setMessage] = useState(`Hola, me interesa el ${vehicle.brand} ${vehicle.model}${vehicle.year ? ` ${vehicle.year}` : ''}.`)
   const [submitting, setSubmitting] = useState(false)
   const [done, setDone] = useState(false)
 
@@ -145,13 +127,12 @@ const RequestInfoForm = ({ vehicle }: RequestInfoFormProps) => {
     }
     setSubmitting(true)
     try {
-      await leadService.create({
-        fullName: fullName.trim(),
-        phone: phone.trim(),
-        email: email.trim() || undefined,
+      await leadService.createFromPublicForm({
         vehicleId: vehicle.id,
-        status: 'new',
-        channel: 'website'
+        name: fullName.trim(),
+        phone: phone.trim(),
+        message: message.trim() || null,
+        source: LEAD_SOURCE_PUBLIC
       })
       setDone(true)
       showToast('¡Solicitud enviada! El concesionario te contactará pronto.')
@@ -173,38 +154,10 @@ const RequestInfoForm = ({ vehicle }: RequestInfoFormProps) => {
   return (
     <form onSubmit={handleSubmit} noValidate>
       <Stack spacing={2}>
-        <TextField
-          label='Nombre completo'
-          value={fullName}
-          onChange={(event) => setFullName(event.target.value)}
-          required
-        />
-        <TextField
-          label='Teléfono / WhatsApp'
-          value={phone}
-          onChange={(event) => setPhone(event.target.value)}
-          required
-        />
-        <TextField
-          label='Correo (opcional)'
-          type='email'
-          value={email}
-          onChange={(event) => setEmail(event.target.value)}
-        />
-        <TextField
-          label='Mensaje'
-          value={message}
-          onChange={(event) => setMessage(event.target.value)}
-          multiline
-          minRows={3}
-        />
-        <Button
-          type='submit'
-          variant='contained'
-          size='large'
-          startIcon={<SendOutlinedIcon />}
-          disabled={submitting}
-        >
+        <TextField label='Nombre completo' value={fullName} onChange={(event) => setFullName(event.target.value)} required />
+        <TextField label='Teléfono / WhatsApp' value={phone} onChange={(event) => setPhone(event.target.value)} required />
+        <TextField label='Mensaje' value={message} onChange={(event) => setMessage(event.target.value)} multiline minRows={3} />
+        <Button type='submit' variant='contained' size='large' startIcon={<SendOutlinedIcon />} disabled={submitting}>
           {submitting ? 'Enviando…' : 'Solicitar información'}
         </Button>
       </Stack>
@@ -214,44 +167,22 @@ const RequestInfoForm = ({ vehicle }: RequestInfoFormProps) => {
 
 export const PublicVehiclePage = () => {
   const { id = '' } = useParams<{ id: string }>()
-  const [vehicle, setVehicle] = useState<Vehicle | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const vehicleQuery = useVehicle(id)
 
-  useEffect(() => {
-    let cancelled = false
-    setLoading(true)
-    vehicleService
-      .getById(id)
-      .then((result) => {
-        if (cancelled) return
-        if (!result) setError('Vehículo no disponible')
-        else setVehicle(result)
-      })
-      .catch((err: Error) => {
-        if (!cancelled) setError(err.message)
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false)
-      })
-    return () => {
-      cancelled = true
-    }
-  }, [id])
-
-  if (loading) return <LoadingState message='Cargando vehículo…' />
-  if (error || !vehicle) {
+  if (vehicleQuery.isLoading) return <LoadingState message='Cargando vehículo…' />
+  if (vehicleQuery.isError || !vehicleQuery.data) {
     return (
       <Container sx={{ py: 8 }}>
-        <Alert severity='error'>{error ?? 'Vehículo no disponible'}</Alert>
+        <Alert severity='error'>{(vehicleQuery.error as Error | undefined)?.message ?? 'Vehículo no disponible'}</Alert>
       </Container>
     )
   }
 
+  const vehicle = vehicleQuery.data
   const whatsappMessage = encodeURIComponent(
-    `Hola, me interesa el ${vehicle.brand} ${vehicle.model} ${vehicle.year} publicado en su web.`
+    `Hola, me interesa el ${vehicle.brand} ${vehicle.model}${vehicle.year ? ` ${vehicle.year}` : ''} publicado en su web.`
   )
-  const whatsappLink = `https://wa.me/18095550000?text=${whatsappMessage}`
+  const whatsappLink = `https://wa.me/?text=${whatsappMessage}`
 
   return (
     <Box sx={{ backgroundColor: 'background.default', minHeight: '100vh' }}>
@@ -281,13 +212,13 @@ export const PublicVehiclePage = () => {
       <Container sx={{ py: { xs: 3, md: 5 } }}>
         <Grid container spacing={4}>
           <Grid size={{ xs: 12, md: 7 }}>
-            <ImageGallery images={vehicle.images} altBase={`${vehicle.brand} ${vehicle.model}`} />
+            <ImageGallery vehicle={vehicle} />
           </Grid>
           <Grid size={{ xs: 12, md: 5 }}>
             <Stack spacing={3}>
               <Box>
                 <Typography variant='caption' color='text.secondary'>
-                  {vehicle.year}
+                  {vehicle.year ?? ''}
                 </Typography>
                 <Typography variant='h3' component='h1'>
                   {vehicle.brand} {vehicle.model}
@@ -300,32 +231,16 @@ export const PublicVehiclePage = () => {
                 <CardContent>
                   <Grid container spacing={2}>
                     <Grid size={{ xs: 6 }}>
-                      <SpecBlock
-                        icon={<CalendarMonthOutlinedIcon fontSize='small' />}
-                        label='Año'
-                        value={`${vehicle.year}`}
-                      />
+                      <SpecBlock icon={<CalendarMonthOutlinedIcon fontSize='small' />} label='Año' value={vehicle.year !== null ? `${vehicle.year}` : '—'} />
                     </Grid>
                     <Grid size={{ xs: 6 }}>
-                      <SpecBlock
-                        icon={<SpeedOutlinedIcon fontSize='small' />}
-                        label='Kilometraje'
-                        value={`${formatNumber(vehicle.mileage)} km`}
-                      />
+                      <SpecBlock icon={<SpeedOutlinedIcon fontSize='small' />} label='Kilometraje' value={`${formatNumber(vehicle.mileage)} km`} />
                     </Grid>
                     <Grid size={{ xs: 6 }}>
-                      <SpecBlock
-                        icon={<SettingsOutlinedIcon fontSize='small' />}
-                        label='Transmisión'
-                        value={TRANSMISSION_LABEL[vehicle.transmission]}
-                      />
+                      <SpecBlock icon={<SettingsOutlinedIcon fontSize='small' />} label='Transmisión' value={vehicle.transmission ?? '—'} />
                     </Grid>
                     <Grid size={{ xs: 6 }}>
-                      <SpecBlock
-                        icon={<LocalGasStationOutlinedIcon fontSize='small' />}
-                        label='Combustible'
-                        value={FUEL_LABEL[vehicle.fuelType]}
-                      />
+                      <SpecBlock icon={<LocalGasStationOutlinedIcon fontSize='small' />} label='Combustible' value={vehicle.fuelType ?? '—'} />
                     </Grid>
                   </Grid>
                 </CardContent>

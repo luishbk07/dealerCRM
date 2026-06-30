@@ -1,10 +1,10 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
 import type { Session, User as SupabaseUser } from '@supabase/supabase-js'
 import { supabase, isSupabaseConfigured } from '@/shared/services/supabase'
-import type { Dealer, Profile, User } from '@/shared/types'
+import type { Dealer, Profile, User, UserRole } from '@/shared/types'
 import { authService, mapSupabaseUserToUser } from '../services/authService'
 import { profileService } from '../services/profileService'
-import { dealerService } from '@/features/onboarding/services/dealerService'
+import { dealerRepository } from '@/shared/repositories'
 
 interface AuthContextValue {
   user: User | null
@@ -24,6 +24,14 @@ const AuthContext = createContext<AuthContextValue | null>(null)
 
 const SUPABASE_CONFIG_MESSAGE = 'Configura Supabase: copia .env.example a .env y agrega VITE_SUPABASE_URL y VITE_SUPABASE_ANON_KEY.'
 
+const isUserRole = (value: string): value is UserRole =>
+  value === 'dealer' || value === 'admin' || value === 'sales'
+
+const safeRole = (value: string | null | undefined): UserRole => {
+  if (typeof value === 'string' && isUserRole(value)) return value
+  return 'dealer'
+}
+
 const extractFullName = (supabaseUser: SupabaseUser, fallbackProfile: Profile | null): string => {
   const metaName = (supabaseUser.user_metadata?.full_name as string | undefined)?.trim()
   if (metaName) return metaName
@@ -32,7 +40,7 @@ const extractFullName = (supabaseUser: SupabaseUser, fallbackProfile: Profile | 
 }
 
 const buildUser = (supabaseUser: SupabaseUser, profile: Profile | null): User => {
-  return mapSupabaseUserToUser(supabaseUser, extractFullName(supabaseUser, profile), profile?.role ?? 'dealer')
+  return mapSupabaseUserToUser(supabaseUser, extractFullName(supabaseUser, profile), safeRole(profile?.role))
 }
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
@@ -54,7 +62,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const fallbackName = (current.user_metadata?.full_name as string | undefined)?.trim() || current.email || 'Usuario'
       const [resolvedProfile, resolvedDealer] = await Promise.all([
         profileService.ensureExists({ id: current.id, fullName: fallbackName }),
-        dealerService.getDealerByOwnerId(current.id)
+        dealerRepository.getByOwnerId(current.id)
       ])
       setProfile(resolvedProfile)
       setDealer(resolvedDealer)
@@ -128,7 +136,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const refreshDealer = useCallback(async () => {
     if (!supabaseUser) return
-    const next = await dealerService.getDealerByOwnerId(supabaseUser.id)
+    const next = await dealerRepository.getByOwnerId(supabaseUser.id)
     setDealer(next)
   }, [supabaseUser])
 

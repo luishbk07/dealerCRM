@@ -1,23 +1,27 @@
 import { Box, Card, CardContent, LinearProgress, Stack, Typography } from '@mui/material'
-import type { Lead, LeadStatus } from '@/shared/types'
+import type { LeadConversionPoint } from '@/shared/types'
 
 interface PipelineSnapshotProps {
-  leads: Lead[]
+  data: LeadConversionPoint[]
 }
 
-const STAGES: { status: LeadStatus, label: string, color: string }[] = [
+interface StageConfig {
+  status: string
+  label: string
+  color: string
+}
+
+const STAGES: StageConfig[] = [
   { status: 'new', label: 'Nuevos', color: '#0EA5E9' },
   { status: 'contacted', label: 'Contactados', color: '#2563EB' },
-  { status: 'negotiating', label: 'Negociando', color: '#F59E0B' },
-  { status: 'sold', label: 'Vendidos', color: '#10B981' }
+  { status: 'qualified', label: 'Calificados', color: '#F59E0B' },
+  { status: 'sold', label: 'Vendidos', color: '#10B981' },
+  { status: 'lost', label: 'Perdidos', color: '#94A3B8' }
 ]
 
-export const PipelineSnapshot = ({ leads }: PipelineSnapshotProps) => {
-  const total = leads.length
-  const counts = STAGES.map((stage) => ({
-    ...stage,
-    count: leads.filter((lead) => lead.status === stage.status).length
-  }))
+export const PipelineSnapshot = ({ data }: PipelineSnapshotProps) => {
+  const total = data.reduce((sum, point) => sum + point.count, 0)
+  const countByStatus = new Map(data.map((point) => [point.status, point.count]))
 
   return (
     <Card sx={{ height: '100%' }}>
@@ -29,8 +33,9 @@ export const PipelineSnapshot = ({ leads }: PipelineSnapshotProps) => {
           </Typography>
         </Stack>
         <Stack spacing={2.5}>
-          {counts.map((stage) => {
-            const percent = total === 0 ? 0 : Math.round((stage.count / total) * 100)
+          {STAGES.map((stage) => {
+            const count = countByStatus.get(stage.status) ?? 0
+            const percent = total === 0 ? 0 : Math.round((count / total) * 100)
             return (
               <Box key={stage.status}>
                 <Stack direction='row' justifyContent='space-between' sx={{ mb: 0.5 }}>
@@ -38,7 +43,7 @@ export const PipelineSnapshot = ({ leads }: PipelineSnapshotProps) => {
                     {stage.label}
                   </Typography>
                   <Typography variant='body2' color='text.secondary'>
-                    {stage.count} · {percent}%
+                    {count} · {percent}%
                   </Typography>
                 </Stack>
                 <LinearProgress

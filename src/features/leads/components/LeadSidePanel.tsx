@@ -3,34 +3,28 @@ import WhatsAppIcon from '@mui/icons-material/WhatsApp'
 import OpenInNewOutlinedIcon from '@mui/icons-material/OpenInNew'
 import StickyNote2OutlinedIcon from '@mui/icons-material/StickyNote2Outlined'
 import { useState } from 'react'
-import type { Lead, LeadStatus, Vehicle } from '@/shared/types'
+import type { Lead, LeadNote, VehicleWithImages } from '@/shared/types'
 import { formatCurrency, formatDateTime } from '@/shared/utils/format'
 import { paths } from '@/app/routes/paths'
+import { vehicleService } from '@/features/vehicles/services/vehicleService'
 
-const STATUS_OPTIONS: { value: LeadStatus, label: string }[] = [
+const STATUS_OPTIONS: { value: string, label: string }[] = [
   { value: 'new', label: 'Nuevo' },
   { value: 'contacted', label: 'Contactado' },
-  { value: 'negotiating', label: 'Negociando' },
+  { value: 'qualified', label: 'Calificado' },
   { value: 'sold', label: 'Vendido' },
   { value: 'lost', label: 'Perdido' }
 ]
 
-const CHANNEL_LABEL: Record<Lead['channel'], string> = {
-  whatsapp: 'WhatsApp',
-  website: 'Sitio web',
-  facebook: 'Facebook',
-  instagram: 'Instagram',
-  phone: 'Teléfono'
-}
-
 interface LeadSidePanelProps {
   lead: Lead
-  vehicle: Vehicle | null
-  onChangeStatus: (status: LeadStatus) => Promise<void>
+  notes: LeadNote[]
+  vehicle: VehicleWithImages | null
+  onChangeStatus: (status: string) => Promise<void>
   onAddNote: (content: string) => Promise<void>
 }
 
-export const LeadSidePanel = ({ lead, vehicle, onChangeStatus, onAddNote }: LeadSidePanelProps) => {
+export const LeadSidePanel = ({ lead, notes, vehicle, onChangeStatus, onAddNote }: LeadSidePanelProps) => {
   const [noteDraft, setNoteDraft] = useState('')
   const [savingNote, setSavingNote] = useState(false)
   const [updatingStatus, setUpdatingStatus] = useState(false)
@@ -47,7 +41,7 @@ export const LeadSidePanel = ({ lead, vehicle, onChangeStatus, onAddNote }: Lead
     }
   }
 
-  const handleStatusChange = async (status: LeadStatus) => {
+  const handleStatusChange = async (status: string) => {
     setUpdatingStatus(true)
     try {
       await onChangeStatus(status)
@@ -56,7 +50,9 @@ export const LeadSidePanel = ({ lead, vehicle, onChangeStatus, onAddNote }: Lead
     }
   }
 
-  const whatsappLink = `https://wa.me/${lead.phone.replace(/\D/g, '')}`
+  const phoneDigits = (lead.phone ?? '').replace(/\D/g, '')
+  const whatsappLink = phoneDigits ? `https://wa.me/${phoneDigits}` : ''
+  const vehicleImage = vehicle && vehicle.images.length > 0 ? vehicleService.resolveImageUrl(vehicle.images[0]) : null
 
   return (
     <Stack spacing={2} sx={{ p: 2.5, overflowY: 'auto', height: '100%' }}>
@@ -68,19 +64,17 @@ export const LeadSidePanel = ({ lead, vehicle, onChangeStatus, onAddNote }: Lead
                 Lead
               </Typography>
               <Typography variant='h5' sx={{ mb: 0.75 }}>
-                {lead.fullName}
+                {lead.name ?? 'Sin nombre'}
               </Typography>
-              <Chip
-                label={`Origen: ${CHANNEL_LABEL[lead.channel]}`}
-                variant='outlined'
-                size='small'
-              />
+              {lead.source ? (
+                <Chip label={`Origen: ${lead.source}`} variant='outlined' size='small' />
+              ) : null}
             </Box>
             <TextField
               select
               label='Estado del lead'
               value={lead.status}
-              onChange={(event) => handleStatusChange(event.target.value as LeadStatus)}
+              onChange={(event) => handleStatusChange(event.target.value)}
               disabled={updatingStatus}
             >
               {STATUS_OPTIONS.map((option) => (
@@ -93,27 +87,21 @@ export const LeadSidePanel = ({ lead, vehicle, onChangeStatus, onAddNote }: Lead
               <Typography variant='caption' color='text.secondary'>
                 Teléfono
               </Typography>
-              <Typography variant='body2'>{lead.phone}</Typography>
+              <Typography variant='body2'>{lead.phone ?? '—'}</Typography>
             </Box>
-            {lead.email ? (
-              <Box>
-                <Typography variant='caption' color='text.secondary'>
-                  Correo
-                </Typography>
-                <Typography variant='body2'>{lead.email}</Typography>
-              </Box>
+            {whatsappLink ? (
+              <Button
+                variant='contained'
+                color='success'
+                startIcon={<WhatsAppIcon />}
+                href={whatsappLink}
+                target='_blank'
+                rel='noopener'
+                sx={{ color: '#fff' }}
+              >
+                Abrir WhatsApp
+              </Button>
             ) : null}
-            <Button
-              variant='contained'
-              color='success'
-              startIcon={<WhatsAppIcon />}
-              href={whatsappLink}
-              target='_blank'
-              rel='noopener'
-              sx={{ color: '#fff' }}
-            >
-              Abrir WhatsApp
-            </Button>
           </Stack>
         </CardContent>
       </Card>
@@ -125,18 +113,20 @@ export const LeadSidePanel = ({ lead, vehicle, onChangeStatus, onAddNote }: Lead
           </Typography>
           {vehicle ? (
             <Stack spacing={1.5}>
-              <Box
-                component='img'
-                src={vehicle.images[0] ?? 'https://placehold.co/600x400/E2E8F0/64748B?text=Sin+imagen'}
-                alt={`${vehicle.brand} ${vehicle.model}`}
-                sx={{ width: '100%', aspectRatio: '16 / 10', objectFit: 'cover', borderRadius: 2 }}
-              />
+              {vehicleImage ? (
+                <Box
+                  component='img'
+                  src={vehicleImage}
+                  alt={`${vehicle.brand} ${vehicle.model}`}
+                  sx={{ width: '100%', aspectRatio: '16 / 10', objectFit: 'cover', borderRadius: 2 }}
+                />
+              ) : null}
               <Box>
                 <Typography variant='subtitle1'>
                   {vehicle.brand} {vehicle.model}
                 </Typography>
                 <Typography variant='body2' color='text.secondary'>
-                  {vehicle.year} · {formatCurrency(vehicle.price)}
+                  {vehicle.year ?? '—'} · {formatCurrency(vehicle.price)}
                 </Typography>
               </Box>
               <Button
@@ -150,7 +140,9 @@ export const LeadSidePanel = ({ lead, vehicle, onChangeStatus, onAddNote }: Lead
             </Stack>
           ) : (
             <Typography variant='body2' color='text.secondary'>
-              El vehículo asociado ya no está disponible.
+              {lead.vehicleId
+                ? 'El vehículo asociado ya no está disponible.'
+                : 'Este lead no está vinculado a un vehículo.'}
             </Typography>
           )}
         </CardContent>
@@ -176,15 +168,15 @@ export const LeadSidePanel = ({ lead, vehicle, onChangeStatus, onAddNote }: Lead
               </Button>
             </Box>
             <Divider />
-            {lead.notes.length === 0 ? (
+            {notes.length === 0 ? (
               <Typography variant='body2' color='text.secondary'>
                 Aún no hay notas para este lead.
               </Typography>
             ) : (
               <Stack spacing={1.5}>
-                {lead.notes.map((note) => (
+                {notes.map((note) => (
                   <Box key={note.id}>
-                    <Typography variant='body2'>{note.content}</Typography>
+                    <Typography variant='body2'>{note.note ?? ''}</Typography>
                     <Typography variant='caption' color='text.secondary'>
                       {formatDateTime(note.createdAt)}
                     </Typography>

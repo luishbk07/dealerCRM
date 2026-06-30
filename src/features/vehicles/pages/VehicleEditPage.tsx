@@ -3,71 +3,41 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 import AutoAwesomeOutlinedIcon from '@mui/icons-material/AutoAwesomeOutlined'
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline'
 import OpenInNewOutlinedIcon from '@mui/icons-material/OpenInNew'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { ConfirmDialog, LoadingState, PageHeader } from '@/shared/components'
 import { useToast } from '@/shared/hooks/useToast'
-import { vehicleService } from '@/shared/services'
 import { paths } from '@/app/routes/paths'
-import type { Vehicle, VehicleInput } from '@/shared/types'
-import { useVehicles } from '../hooks/useVehicles'
+import type { VehicleImage } from '@/shared/types'
+import { useVehicle } from '../hooks/useVehicle'
+import { useVehicleMutations } from '../hooks/useVehicleMutations'
 import { VehicleForm } from '../components/VehicleForm'
 import { AdGeneratorDialog } from '../components/AdGeneratorDialog'
+import type { VehicleFormPayload, VehicleImageUpload } from '../services/vehicleService'
 
 export const VehicleEditPage = () => {
   const { id = '' } = useParams<{ id: string }>()
   const navigate = useNavigate()
-  const { updateVehicle, removeVehicle } = useVehicles()
   const { showToast } = useToast()
+  const vehicleQuery = useVehicle(id)
+  const { update, remove, deleteImage, setPrimary } = useVehicleMutations()
 
-  const [vehicle, setVehicle] = useState<Vehicle | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [submitting, setSubmitting] = useState(false)
   const [adOpen, setAdOpen] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
 
-  useEffect(() => {
-    let cancelled = false
-    setLoading(true)
-    vehicleService
-      .getById(id)
-      .then((result) => {
-        if (cancelled) return
-        if (!result) {
-          setError('Vehículo no encontrado')
-        } else {
-          setVehicle(result)
-        }
-      })
-      .catch((err: Error) => {
-        if (!cancelled) setError(err.message)
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false)
-      })
-    return () => {
-      cancelled = true
-    }
-  }, [id])
-
-  const handleSubmit = async (values: VehicleInput) => {
-    setSubmitting(true)
+  const handleSubmit = async (payload: VehicleFormPayload, images: VehicleImageUpload[]) => {
     try {
-      const updated = await updateVehicle(id, values)
-      setVehicle(updated)
+      await update.mutateAsync({ id, payload, newImages: images })
       showToast('Cambios guardados')
     } catch (err) {
       showToast((err as Error).message, 'error')
-    } finally {
-      setSubmitting(false)
     }
   }
 
   const handleDelete = async () => {
     setConfirmDelete(false)
     try {
-      await removeVehicle(id)
+      await remove.mutateAsync(id)
       showToast('Vehículo eliminado')
       navigate(paths.vehicles)
     } catch (err) {
@@ -75,8 +45,29 @@ export const VehicleEditPage = () => {
     }
   }
 
-  if (loading) return <LoadingState message='Cargando vehículo…' />
-  if (error || !vehicle) return <Alert severity='error'>{error ?? 'Vehículo no encontrado'}</Alert>
+  const handleDeleteImage = async (image: VehicleImage) => {
+    try {
+      await deleteImage.mutateAsync(image)
+      showToast('Imagen eliminada')
+    } catch (err) {
+      showToast((err as Error).message, 'error')
+    }
+  }
+
+  const handleSetPrimary = async (image: VehicleImage) => {
+    try {
+      await setPrimary.mutateAsync(image)
+      showToast('Imagen principal actualizada')
+    } catch (err) {
+      showToast((err as Error).message, 'error')
+    }
+  }
+
+  if (vehicleQuery.isLoading) return <LoadingState message='Cargando vehículo…' />
+  if (vehicleQuery.isError) return <Alert severity='error'>{(vehicleQuery.error as Error).message}</Alert>
+
+  const vehicle = vehicleQuery.data
+  if (!vehicle) return <Alert severity='error'>Vehículo no encontrado</Alert>
 
   return (
     <Box>
@@ -92,7 +83,7 @@ export const VehicleEditPage = () => {
       </Stack>
       <PageHeader
         title={`${vehicle.brand} ${vehicle.model}`}
-        subtitle={`Año ${vehicle.year} · Última actualización ${new Date(vehicle.updatedAt).toLocaleDateString('es-DO')}`}
+        subtitle={`Año ${vehicle.year ?? '—'} · Última actualización ${new Date(vehicle.updatedAt).toLocaleDateString('es-DO')}`}
         actions={
           <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1}>
             <Button
@@ -123,9 +114,11 @@ export const VehicleEditPage = () => {
 
       <VehicleForm
         initial={vehicle}
-        submitting={submitting}
+        submitting={update.isPending}
         onSubmit={handleSubmit}
         onCancel={() => navigate(paths.vehicles)}
+        onDeleteImage={handleDeleteImage}
+        onSetPrimaryImage={handleSetPrimary}
       />
 
       <AdGeneratorDialog vehicle={vehicle} open={adOpen} onClose={() => setAdOpen(false)} />

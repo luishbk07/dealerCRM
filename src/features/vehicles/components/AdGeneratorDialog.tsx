@@ -13,6 +13,8 @@ interface AdGeneratorDialogProps {
   onClose: () => void
 }
 
+const formatVehicleYear = (vehicle: Vehicle): string => vehicle.year !== null ? ` ${vehicle.year}` : ''
+
 type ChannelTab = 'facebook' | 'instagram' | 'marketplace'
 
 const TABS: { value: ChannelTab, label: string }[] = [
@@ -68,7 +70,7 @@ export const AdGeneratorDialog = ({ vehicle, open, onClose }: AdGeneratorDialogP
           <Typography variant='h6'>Generador de anuncios con IA</Typography>
           {vehicle ? (
             <Typography variant='body2' color='text.secondary'>
-              {vehicle.brand} {vehicle.model} {vehicle.year}
+              {vehicle.brand} {vehicle.model}{formatVehicleYear(vehicle)}
             </Typography>
           ) : null}
         </Stack>

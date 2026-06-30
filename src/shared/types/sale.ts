@@ -1,8 +1,8 @@
 export interface Sale {
   id: string
-  vehicleId: string
-  leadId?: string
-  buyerName: string
-  finalPrice: number
+  dealerId: string | null
+  vehicleId: string | null
+  leadId: string | null
+  price: number | null
   soldAt: string
 }

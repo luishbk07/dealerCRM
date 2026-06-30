@@ -1,6 +1,7 @@
 import type { Vehicle } from '@/shared/types'
-import { delay } from '@/shared/utils/delay'
 import { formatCurrency, formatNumber } from '@/shared/utils/format'
+
+const wait = (ms: number): Promise<void> => new Promise((resolve) => setTimeout(resolve, ms))
 
 export interface GeneratedAd {
   facebook: string
@@ -9,28 +10,16 @@ export interface GeneratedAd {
   publicUrl: string
 }
 
-const transmissionLabel = (vehicle: Vehicle): string => {
-  return vehicle.transmission === 'automatic' ? 'automática' : 'manual'
-}
-
-const fuelLabel = (vehicle: Vehicle): string => {
-  const labels: Record<Vehicle['fuelType'], string> = {
-    gasoline: 'gasolina',
-    diesel: 'diésel',
-    hybrid: 'híbrido',
-    electric: 'eléctrico'
-  }
-  return labels[vehicle.fuelType]
-}
+const labelOr = (value: string | null, fallback: string): string => value && value.trim() ? value : fallback
 
 const buildFacebook = (vehicle: Vehicle): string => {
   return [
-    `🚗 ${vehicle.brand} ${vehicle.model} ${vehicle.year}`,
+    `🚗 ${vehicle.brand} ${vehicle.model}${vehicle.year ? ` ${vehicle.year}` : ''}`,
     ``,
     `Precio: ${formatCurrency(vehicle.price)}`,
     `Kilometraje: ${formatNumber(vehicle.mileage)} km`,
-    `Transmisión: ${transmissionLabel(vehicle)}`,
-    `Combustible: ${fuelLabel(vehicle)}`,
+    `Transmisión: ${labelOr(vehicle.transmission, 'consultar')}`,
+    `Combustible: ${labelOr(vehicle.fuelType, 'consultar')}`,
     ``,
     `${vehicle.description ?? 'Vehículo en excelente estado, listo para entrega.'}`,
     ``,
@@ -41,26 +30,26 @@ const buildFacebook = (vehicle: Vehicle): string => {
 
 const buildInstagram = (vehicle: Vehicle): string => {
   return [
-    `✨ ${vehicle.brand} ${vehicle.model} ${vehicle.year} ✨`,
+    `✨ ${vehicle.brand} ${vehicle.model}${vehicle.year ? ` ${vehicle.year}` : ''} ✨`,
     ``,
-    `${formatCurrency(vehicle.price)} · ${transmissionLabel(vehicle)} · ${formatNumber(vehicle.mileage)} km`,
+    `${formatCurrency(vehicle.price)} · ${labelOr(vehicle.transmission, 'consultar')} · ${formatNumber(vehicle.mileage)} km`,
     ``,
     `Desliza para ver más fotos 📸`,
     `DM o WhatsApp para reservar tu test drive.`,
     ``,
-    `#${vehicle.brand}${vehicle.model} #CarrosRD #Concesionario #${vehicle.year} #DOM`
+    `#${vehicle.brand}${vehicle.model} #CarrosRD #Concesionario${vehicle.year ? ` #${vehicle.year}` : ''} #DOM`
   ].join('\n')
 }
 
 const buildMarketplace = (vehicle: Vehicle): string => {
   return [
-    `${vehicle.brand} ${vehicle.model} ${vehicle.year} — ${formatCurrency(vehicle.price)}`,
+    `${vehicle.brand} ${vehicle.model}${vehicle.year ? ` ${vehicle.year}` : ''} — ${formatCurrency(vehicle.price)}`,
     ``,
     `Especificaciones:`,
-    `• Año: ${vehicle.year}`,
+    `• Año: ${vehicle.year ?? 'consultar'}`,
     `• Kilometraje: ${formatNumber(vehicle.mileage)} km`,
-    `• Transmisión: ${transmissionLabel(vehicle)}`,
-    `• Combustible: ${fuelLabel(vehicle)}`,
+    `• Transmisión: ${labelOr(vehicle.transmission, 'consultar')}`,
+    `• Combustible: ${labelOr(vehicle.fuelType, 'consultar')}`,
     ``,
     `${vehicle.description ?? 'Vehículo revisado, papeles al día y listo para traspaso.'}`,
     ``,
@@ -74,7 +63,7 @@ export interface AdGeneratorService {
 
 export const adGeneratorService: AdGeneratorService = {
   async generate(vehicle) {
-    await delay(700)
+    await wait(700)
     const origin = typeof window !== 'undefined' ? window.location.origin : 'https://dealer-crm.app'
     return {
       facebook: buildFacebook(vehicle),

@@ -1,21 +1,23 @@
 import { Avatar, Box, Divider, InputAdornment, List, ListItemButton, ListItemAvatar, ListItemText, MenuItem, Stack, TextField, Typography } from '@mui/material'
 import SearchIcon from '@mui/icons-material/Search'
-import type { Lead, LeadStatus, Vehicle } from '@/shared/types'
+import type { Lead } from '@/shared/types'
 import { StatusChip } from '@/shared/components'
 import { formatRelative } from '@/shared/utils/format'
 
-const STATUS_FILTERS: { value: LeadStatus | 'all', label: string }[] = [
+const STATUS_FILTERS: { value: string, label: string }[] = [
   { value: 'all', label: 'Todos' },
   { value: 'new', label: 'Nuevos' },
   { value: 'contacted', label: 'Contactados' },
-  { value: 'negotiating', label: 'Negociando' },
+  { value: 'qualified', label: 'Calificados' },
   { value: 'sold', label: 'Vendidos' },
   { value: 'lost', label: 'Perdidos' }
 ]
 
-const buildInitials = (name: string): string => {
+const buildInitials = (name: string | null): string => {
+  if (!name) return '?'
   return name
     .split(' ')
+    .filter(Boolean)
     .map((part) => part[0])
     .slice(0, 2)
     .join('')
@@ -24,33 +26,31 @@ const buildInitials = (name: string): string => {
 
 interface LeadInboxProps {
   leads: Lead[]
-  vehicles: Vehicle[]
   selectedId?: string
   query: string
-  statusFilter: LeadStatus | 'all'
+  statusFilter: string
+  loading?: boolean
   onQueryChange: (query: string) => void
-  onStatusChange: (status: LeadStatus | 'all') => void
+  onStatusChange: (status: string) => void
   onSelect: (lead: Lead) => void
 }
 
 export const LeadInbox = ({
   leads,
-  vehicles,
   selectedId,
   query,
   statusFilter,
+  loading,
   onQueryChange,
   onStatusChange,
   onSelect
 }: LeadInboxProps) => {
-  const vehiclesById = new Map(vehicles.map((vehicle) => [vehicle.id, vehicle]))
-
   return (
     <Stack sx={{ height: '100%' }}>
       <Box sx={{ p: 2, borderBottom: '1px solid', borderColor: 'divider' }}>
         <Stack spacing={1.5}>
           <TextField
-            placeholder='Buscar por nombre o teléfono'
+            placeholder='Buscar por nombre, teléfono o mensaje'
             value={query}
             onChange={(event) => onQueryChange(event.target.value)}
             InputProps={{
@@ -64,7 +64,7 @@ export const LeadInbox = ({
           <TextField
             select
             value={statusFilter}
-            onChange={(event) => onStatusChange(event.target.value as LeadStatus | 'all')}
+            onChange={(event) => onStatusChange(event.target.value)}
           >
             {STATUS_FILTERS.map((option) => (
               <MenuItem key={option.value} value={option.value}>
@@ -74,7 +74,7 @@ export const LeadInbox = ({
           </TextField>
         </Stack>
       </Box>
-      <Box sx={{ flexGrow: 1, overflowY: 'auto' }}>
+      <Box sx={{ flexGrow: 1, overflowY: 'auto', opacity: loading ? 0.6 : 1, transition: 'opacity 120ms ease' }}>
         {leads.length === 0 ? (
           <Box sx={{ p: 4, textAlign: 'center' }}>
             <Typography variant='body2' color='text.secondary'>
@@ -84,7 +84,6 @@ export const LeadInbox = ({
         ) : (
           <List sx={{ p: 0 }}>
             {leads.map((lead, index) => {
-              const vehicle = vehiclesById.get(lead.vehicleId)
               const isSelected = lead.id === selectedId
               return (
                 <Box key={lead.id}>
@@ -99,23 +98,23 @@ export const LeadInbox = ({
                     }}
                   >
                     <ListItemAvatar>
-                      <Avatar sx={{ bgcolor: 'primary.light' }}>{buildInitials(lead.fullName)}</Avatar>
+                      <Avatar sx={{ bgcolor: 'primary.light' }}>{buildInitials(lead.name)}</Avatar>
                     </ListItemAvatar>
                     <ListItemText
                       primary={
                         <Stack direction='row' justifyContent='space-between' alignItems='center'>
                           <Typography variant='subtitle2' noWrap>
-                            {lead.fullName}
+                            {lead.name ?? 'Sin nombre'}
                           </Typography>
                           <Typography variant='caption' color='text.secondary'>
-                            {formatRelative(lead.updatedAt)}
+                            {formatRelative(lead.lastContactAt ?? lead.createdAt)}
                           </Typography>
                         </Stack>
                       }
                       secondary={
                         <Stack spacing={0.5} sx={{ mt: 0.5 }}>
                           <Typography variant='body2' color='text.secondary' noWrap>
-                            {vehicle ? `${vehicle.brand} ${vehicle.model} ${vehicle.year}` : 'Vehículo no disponible'}
+                            {lead.phone ?? lead.source ?? 'Sin información'}
                           </Typography>
                           <Box>
                             <StatusChip status={lead.status} />

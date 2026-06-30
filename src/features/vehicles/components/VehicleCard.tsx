@@ -2,26 +2,14 @@ import { Box, Card, CardActionArea, CardContent, CardMedia, Chip, Stack, Typogra
 import LocalGasStationOutlinedIcon from '@mui/icons-material/LocalGasStationOutlined'
 import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined'
 import SpeedOutlinedIcon from '@mui/icons-material/SpeedOutlined'
-import type { Vehicle } from '@/shared/types'
+import type { VehicleWithImages } from '@/shared/types'
 import { StatusChip } from '@/shared/components'
 import { formatCurrency, formatNumber } from '@/shared/utils/format'
-
-const FUEL_LABEL: Record<Vehicle['fuelType'], string> = {
-  gasoline: 'Gasolina',
-  diesel: 'Diésel',
-  hybrid: 'Híbrido',
-  electric: 'Eléctrico'
-}
-
-const TRANSMISSION_LABEL: Record<Vehicle['transmission'], string> = {
-  automatic: 'Automática',
-  manual: 'Manual'
-}
 
 const PLACEHOLDER_IMAGE = 'https://placehold.co/600x400/E2E8F0/64748B?text=Sin+imagen'
 
 interface VehicleCardProps {
-  vehicle: Vehicle
+  vehicle: VehicleWithImages
   onClick?: () => void
 }
 
@@ -40,7 +28,8 @@ const VehicleSpec = ({ icon, text }: VehicleSpecProps) => {
 }
 
 export const VehicleCard = ({ vehicle, onClick }: VehicleCardProps) => {
-  const heroImage = vehicle.images[0] ?? PLACEHOLDER_IMAGE
+  const heroImage = vehicle.primaryImageUrl ?? PLACEHOLDER_IMAGE
+  const additionalCount = Math.max(vehicle.images.length - 1, 0)
 
   return (
     <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
@@ -55,9 +44,9 @@ export const VehicleCard = ({ vehicle, onClick }: VehicleCardProps) => {
           <Box sx={{ position: 'absolute', top: 12, left: 12 }}>
             <StatusChip status={vehicle.status} />
           </Box>
-          {vehicle.images.length > 1 ? (
+          {additionalCount > 0 ? (
             <Chip
-              label={`+${vehicle.images.length - 1}`}
+              label={`+${additionalCount}`}
               size='small'
               sx={{
                 position: 'absolute',
@@ -76,7 +65,7 @@ export const VehicleCard = ({ vehicle, onClick }: VehicleCardProps) => {
                 {vehicle.brand} {vehicle.model}
               </Typography>
               <Typography variant='caption' color='text.secondary'>
-                {vehicle.year}
+                {vehicle.year ?? '—'}
               </Typography>
             </Box>
             <Typography variant='h5' color='primary.main'>
@@ -84,8 +73,8 @@ export const VehicleCard = ({ vehicle, onClick }: VehicleCardProps) => {
             </Typography>
             <Stack direction='row' spacing={1.5} flexWrap='wrap' useFlexGap>
               <VehicleSpec icon={<SpeedOutlinedIcon fontSize='inherit' />} text={`${formatNumber(vehicle.mileage)} km`} />
-              <VehicleSpec icon={<SettingsOutlinedIcon fontSize='inherit' />} text={TRANSMISSION_LABEL[vehicle.transmission]} />
-              <VehicleSpec icon={<LocalGasStationOutlinedIcon fontSize='inherit' />} text={FUEL_LABEL[vehicle.fuelType]} />
+              <VehicleSpec icon={<SettingsOutlinedIcon fontSize='inherit' />} text={vehicle.transmission ?? '—'} />
+              <VehicleSpec icon={<LocalGasStationOutlinedIcon fontSize='inherit' />} text={vehicle.fuelType ?? '—'} />
             </Stack>
           </Stack>
         </CardContent>

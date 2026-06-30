@@ -6,16 +6,24 @@ const currencyFormatter = new Intl.NumberFormat('es-DO', {
 
 const numberFormatter = new Intl.NumberFormat('es-DO')
 
-export const formatCurrency = (value: number): string => currencyFormatter.format(value)
+export const formatCurrency = (value: number | null | undefined): string => {
+  if (value === null || value === undefined) return 'RD$ —'
+  return currencyFormatter.format(value)
+}
 
-export const formatNumber = (value: number): string => numberFormatter.format(value)
+export const formatNumber = (value: number | null | undefined): string => {
+  if (value === null || value === undefined) return '—'
+  return numberFormatter.format(value)
+}
 
-export const formatDate = (iso: string): string => {
+export const formatDate = (iso: string | null | undefined): string => {
+  if (!iso) return '—'
   const date = new Date(iso)
   return date.toLocaleDateString('es-DO', { day: '2-digit', month: 'short', year: 'numeric' })
 }
 
-export const formatDateTime = (iso: string): string => {
+export const formatDateTime = (iso: string | null | undefined): string => {
+  if (!iso) return '—'
   const date = new Date(iso)
   return date.toLocaleString('es-DO', {
     day: '2-digit',
@@ -26,7 +34,8 @@ export const formatDateTime = (iso: string): string => {
   })
 }
 
-export const formatRelative = (iso: string): string => {
+export const formatRelative = (iso: string | null | undefined): string => {
+  if (!iso) return '—'
   const now = Date.now()
   const then = new Date(iso).getTime()
   const diffMinutes = Math.round((now - then) / 60000)

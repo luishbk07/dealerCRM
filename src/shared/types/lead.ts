@@ -1,32 +1,36 @@
-export type LeadStatus = 'new' | 'contacted' | 'negotiating' | 'sold' | 'lost'
-
-export type LeadChannel = 'whatsapp' | 'website' | 'facebook' | 'instagram' | 'phone'
-
-export interface LeadMessage {
+export interface Lead {
   id: string
-  author: 'lead' | 'dealer'
-  content: string
+  dealerId: string | null
+  vehicleId: string | null
+  name: string | null
+  phone: string | null
+  message: string | null
+  source: string | null
+  status: string
   createdAt: string
+  lastContactAt: string | null
 }
 
 export interface LeadNote {
   id: string
-  content: string
+  leadId: string | null
+  note: string | null
   createdAt: string
 }
 
-export interface Lead {
+export interface LeadMessage {
   id: string
-  fullName: string
-  phone: string
-  email?: string
-  vehicleId: string
-  status: LeadStatus
-  channel: LeadChannel
-  notes: LeadNote[]
-  messages: LeadMessage[]
+  leadId: string | null
+  sender: string | null
+  message: string | null
   createdAt: string
-  updatedAt: string
 }
 
-export type LeadInput = Omit<Lead, 'id' | 'createdAt' | 'updatedAt' | 'notes' | 'messages'>
+export const LEAD_STATUS_NEW = 'new'
+export const LEAD_STATUS_CONTACTED = 'contacted'
+export const LEAD_STATUS_QUALIFIED = 'qualified'
+export const LEAD_STATUS_SOLD = 'sold'
+export const LEAD_STATUS_LOST = 'lost'
+
+export const LEAD_SENDER_DEALER = 'dealer'
+export const LEAD_SENDER_LEAD = 'lead'
