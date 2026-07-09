@@ -13,6 +13,7 @@ import { useDashboardStats } from '../hooks/useDashboardStats'
 import { useLeads } from '@/features/leads/hooks/useLeads'
 import { RecentLeadsList } from '../components/RecentLeadsList'
 import { PipelineSnapshot } from '../components/PipelineSnapshot'
+import { isDev } from '@/shared/utils/environment'
 
 const RECENT_LEADS_PARAMS = { page: 0, pageSize: 5 }
 
@@ -25,10 +26,10 @@ export const DashboardPage = () => {
     return <LoadingState message='Cargando tu dashboard…' />
   }
   if (snapshotQuery.isError) {
-    return <Alert severity='error'>No pudimos cargar las métricas. {(snapshotQuery.error as Error).message}</Alert>
+    return <Alert severity='error'>No pudimos cargar las métricas. Por favor contacta al soporte. {isDev ? (snapshotQuery.error as Error).message : ''}</Alert>
   }
   if (recentLeadsQuery.isError) {
-    return <Alert severity='error'>No pudimos cargar los leads. {(recentLeadsQuery.error as Error).message}</Alert>
+    return <Alert severity='error'>No pudimos cargar los leads. Por favor contacta al soporte. {isDev ? (recentLeadsQuery.error as Error).message : ''}</Alert>
   }
 
   const snapshot = snapshotQuery.data
