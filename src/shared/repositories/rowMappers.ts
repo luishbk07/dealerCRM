@@ -1,4 +1,5 @@
 import type { Lead, LeadMessage, LeadNote, Sale, Vehicle, VehicleImage } from '@/shared/types'
+import { LEAD_STATUS_NEW, isLeadStatus } from '@/modules/leads/constants/leadStatus'
 
 export interface VehicleRow {
   id: string
@@ -125,7 +126,7 @@ export const mapLeadRow = (row: LeadRow): Lead => ({
   phone: row.phone,
   message: row.message,
   source: row.source,
-  status: row.status ?? 'new',
+  status: row.status && isLeadStatus(row.status) ? row.status : LEAD_STATUS_NEW,
   createdAt: row.created_at,
   lastContactAt: row.last_contact_at
 })

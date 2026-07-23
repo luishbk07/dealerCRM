@@ -1,4 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
+import type { LeadStatus } from '@/modules/leads/types'
 import { leadService } from '../services/leadService'
 import { queryKeys } from '@/shared/queryKeys'
 
@@ -15,7 +16,7 @@ interface AddMessageVars {
 
 interface UpdateStatusVars {
   leadId: string
-  status: string
+  status: LeadStatus
 }
 
 export const useLeadMutations = () => {

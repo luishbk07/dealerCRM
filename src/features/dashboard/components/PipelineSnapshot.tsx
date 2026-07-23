@@ -1,23 +1,10 @@
 import { Box, Card, CardContent, LinearProgress, Stack, Typography } from '@mui/material'
 import type { LeadConversionPoint } from '@/shared/types'
+import { LEAD_PIPELINE_STAGES } from '@/modules/leads/constants/leadStatus'
 
 interface PipelineSnapshotProps {
   data: LeadConversionPoint[]
 }
-
-interface StageConfig {
-  status: string
-  label: string
-  color: string
-}
-
-const STAGES: StageConfig[] = [
-  { status: 'new', label: 'Nuevos', color: '#0EA5E9' },
-  { status: 'contacted', label: 'Contactados', color: '#2563EB' },
-  { status: 'qualified', label: 'Calificados', color: '#F59E0B' },
-  { status: 'sold', label: 'Vendidos', color: '#10B981' },
-  { status: 'lost', label: 'Perdidos', color: '#94A3B8' }
-]
 
 export const PipelineSnapshot = ({ data }: PipelineSnapshotProps) => {
   const total = data.reduce((sum, point) => sum + point.count, 0)
@@ -33,7 +20,7 @@ export const PipelineSnapshot = ({ data }: PipelineSnapshotProps) => {
           </Typography>
         </Stack>
         <Stack spacing={2.5}>
-          {STAGES.map((stage) => {
+          {LEAD_PIPELINE_STAGES.map((stage) => {
             const count = countByStatus.get(stage.status) ?? 0
             const percent = total === 0 ? 0 : Math.round((count / total) * 100)
             return (

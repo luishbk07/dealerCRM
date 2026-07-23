@@ -4,6 +4,8 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { LEAD_SENDER_DEALER } from '@/shared/types'
 import { LoadingState, PageHeader } from '@/shared/components'
 import { useToast } from '@/shared/hooks/useToast'
+import { isLeadStatus } from '@/modules/leads/constants/leadStatus'
+import type { LeadStatus } from '@/modules/leads/types'
 import { paths } from '@/app/routes/paths'
 import { useLeads } from '../hooks/useLeads'
 import { useLead } from '../hooks/useLead'
@@ -26,7 +28,7 @@ export const LeadsInboxPage = () => {
   const listParams = useMemo(() => ({
     page,
     pageSize: PAGE_SIZE,
-    status: statusFilter === 'all' ? null : statusFilter,
+    status: statusFilter === 'all' || !isLeadStatus(statusFilter) ? null : statusFilter,
     search: query.trim() || null
   }), [page, statusFilter, query])
 
@@ -85,7 +87,7 @@ export const LeadsInboxPage = () => {
     }
   }
 
-  const handleChangeStatus = async (status: string) => {
+  const handleChangeStatus = async (status: LeadStatus) => {
     if (!selectedLead) return
     try {
       await updateStatus.mutateAsync({ leadId: selectedLead.id, status })

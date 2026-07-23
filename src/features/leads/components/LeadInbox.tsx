@@ -4,14 +4,7 @@ import type { Lead } from '@/shared/types'
 import { StatusChip } from '@/shared/components'
 import { formatRelative } from '@/shared/utils/format'
 
-const STATUS_FILTERS: { value: string, label: string }[] = [
-  { value: 'all', label: 'Todos' },
-  { value: 'new', label: 'Nuevos' },
-  { value: 'contacted', label: 'Contactados' },
-  { value: 'qualified', label: 'Calificados' },
-  { value: 'sold', label: 'Vendidos' },
-  { value: 'lost', label: 'Perdidos' }
-]
+import { LEAD_STATUS_FILTER_OPTIONS } from '@/modules/leads/constants/leadStatus'
 
 const buildInitials = (name: string | null): string => {
   if (!name) return '?'
@@ -66,7 +59,7 @@ export const LeadInbox = ({
             value={statusFilter}
             onChange={(event) => onStatusChange(event.target.value)}
           >
-            {STATUS_FILTERS.map((option) => (
+            {LEAD_STATUS_FILTER_OPTIONS.map((option) => (
               <MenuItem key={option.value} value={option.value}>
                 {option.label}
               </MenuItem>

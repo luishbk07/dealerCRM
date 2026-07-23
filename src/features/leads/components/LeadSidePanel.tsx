@@ -8,19 +8,14 @@ import { formatCurrency, formatDateTime } from '@/shared/utils/format'
 import { paths } from '@/app/routes/paths'
 import { vehicleService } from '@/features/vehicles/services/vehicleService'
 
-const STATUS_OPTIONS: { value: string, label: string }[] = [
-  { value: 'new', label: 'Nuevo' },
-  { value: 'contacted', label: 'Contactado' },
-  { value: 'qualified', label: 'Calificado' },
-  { value: 'sold', label: 'Vendido' },
-  { value: 'lost', label: 'Perdido' }
-]
+import { LEAD_STATUS_SELECT_OPTIONS, isLeadStatus } from '@/modules/leads/constants/leadStatus'
+import type { LeadStatus } from '@/modules/leads/types'
 
 interface LeadSidePanelProps {
   lead: Lead
   notes: LeadNote[]
   vehicle: VehicleWithImages | null
-  onChangeStatus: (status: string) => Promise<void>
+  onChangeStatus: (status: LeadStatus) => Promise<void>
   onAddNote: (content: string) => Promise<void>
 }
 
@@ -42,6 +37,7 @@ export const LeadSidePanel = ({ lead, notes, vehicle, onChangeStatus, onAddNote 
   }
 
   const handleStatusChange = async (status: string) => {
+    if (!isLeadStatus(status)) return
     setUpdatingStatus(true)
     try {
       await onChangeStatus(status)
@@ -77,7 +73,7 @@ export const LeadSidePanel = ({ lead, notes, vehicle, onChangeStatus, onAddNote 
               onChange={(event) => handleStatusChange(event.target.value)}
               disabled={updatingStatus}
             >
-              {STATUS_OPTIONS.map((option) => (
+              {LEAD_STATUS_SELECT_OPTIONS.map((option) => (
                 <MenuItem key={option.value} value={option.value}>
                   {option.label}
                 </MenuItem>

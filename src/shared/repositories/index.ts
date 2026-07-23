@@ -9,11 +9,16 @@ export type {
 export { vehicleImageRepository } from './vehicleImageRepository'
 export type { CreateVehicleImageRow } from './vehicleImageRepository'
 
-export { leadRepository } from './leadRepository'
-export type { LeadListParams, LeadListResult, CreateLeadRow, UpdateLeadRow } from './leadRepository'
+export { leadRepository, LeadRepository } from './leadRepository'
+export type {
+  LeadListParams,
+  LeadListResult,
+  CreateLeadRow,
+  UpdateLeadRow
+} from './leadRepository'
 
-export { leadNoteRepository } from './leadNoteRepository'
-export { leadMessageRepository } from './leadMessageRepository'
+export { leadNoteRepository, LeadNotesRepository } from './leadNoteRepository'
+export { leadMessageRepository, LeadMessagesRepository } from './leadMessageRepository'
 
 export { salesRepository } from './salesRepository'
 export type { SaleListParams, SaleListResult, CreateSaleRow } from './salesRepository'

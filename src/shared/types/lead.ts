@@ -1,3 +1,20 @@
+export type { LeadStatus } from '@/modules/leads/types/leadStatus'
+export {
+  LEAD_STATUS_NEW,
+  LEAD_STATUS_CONTACTED,
+  LEAD_STATUS_QUALIFIED,
+  LEAD_STATUS_NEGOTIATING,
+  LEAD_STATUS_SOLD,
+  LEAD_STATUS_LOST,
+  LEAD_STATUSES,
+  LEAD_STATUS_LABELS,
+  LEAD_SENDER_DEALER,
+  LEAD_SENDER_LEAD,
+  isLeadStatus
+} from '@/modules/leads/constants/leadStatus'
+
+import type { LeadStatus } from '@/modules/leads/types/leadStatus'
+
 export interface Lead {
   id: string
   dealerId: string | null
@@ -6,7 +23,7 @@ export interface Lead {
   phone: string | null
   message: string | null
   source: string | null
-  status: string
+  status: LeadStatus
   createdAt: string
   lastContactAt: string | null
 }
@@ -25,12 +42,3 @@ export interface LeadMessage {
   message: string | null
   createdAt: string
 }
-
-export const LEAD_STATUS_NEW = 'new'
-export const LEAD_STATUS_CONTACTED = 'contacted'
-export const LEAD_STATUS_QUALIFIED = 'qualified'
-export const LEAD_STATUS_SOLD = 'sold'
-export const LEAD_STATUS_LOST = 'lost'
-
-export const LEAD_SENDER_DEALER = 'dealer'
-export const LEAD_SENDER_LEAD = 'lead'

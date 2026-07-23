@@ -1,28 +1,38 @@
 import { supabase } from '@/shared/services/supabase'
-import type { LeadMessage } from '@/shared/types'
+import { assertLeadMessagesRepositorySuccess, LeadMessagesRepositoryError } from '@/modules/leads/errors/leadErrors'
+import type { CreateLeadMessageInput, LeadMessage } from '@/modules/leads/types'
 import { mapLeadMessageRow, type LeadMessageRow } from './rowMappers'
 
 const COLUMNS = 'id, lead_id, sender, message, created_at'
 
-export const leadMessageRepository = {
-  async listByLeadId(leadId: string): Promise<LeadMessage[]> {
+export class LeadMessagesRepository {
+  async getByLead(leadId: string): Promise<LeadMessage[]> {
     const { data, error } = await supabase
       .from('lead_messages')
       .select(COLUMNS)
       .eq('lead_id', leadId)
       .order('created_at', { ascending: true })
       .returns<LeadMessageRow[]>()
-    if (error) throw new Error(error.message)
-    return (data ?? []).map(mapLeadMessageRow)
-  },
 
-  async create(leadId: string, sender: string, message: string): Promise<LeadMessage> {
+    assertLeadMessagesRepositorySuccess(error, 'Failed to fetch lead messages')
+    return (data ?? []).map(mapLeadMessageRow)
+  }
+
+  async create(input: CreateLeadMessageInput): Promise<LeadMessage> {
     const { data, error } = await supabase
       .from('lead_messages')
-      .insert({ lead_id: leadId, sender, message })
+      .insert({
+        lead_id: input.leadId,
+        sender: input.sender,
+        message: input.message
+      })
       .select(COLUMNS)
       .single<LeadMessageRow>()
-    if (error) throw new Error(error.message)
+
+    assertLeadMessagesRepositorySuccess(error, 'Failed to create lead message')
+    if (!data) throw new LeadMessagesRepositoryError('Failed to create lead message: empty response')
     return mapLeadMessageRow(data)
   }
 }
+
+export const leadMessageRepository = new LeadMessagesRepository()
