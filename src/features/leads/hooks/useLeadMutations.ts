@@ -1,4 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { LEAD_STATUS_SOLD } from '@/modules/leads/constants/leadStatus'
 import type { Lead, LeadStatus, UpdateLeadInput } from '@/modules/leads/types'
 import { leadService, type CreateLeadFromDashboardInput } from '../services/leadService'
 import { queryKeys } from '@/shared/queryKeys'
@@ -36,9 +37,21 @@ export const useLeadMutations = () => {
     }
   }
 
+  const invalidateAfterSale = (leadId: string) => {
+    invalidate(leadId)
+    queryClient.invalidateQueries({ queryKey: queryKeys.sales.all })
+    queryClient.invalidateQueries({ queryKey: queryKeys.vehicles.all })
+  }
+
   const updateStatus = useMutation({
     mutationFn: ({ leadId, status }: UpdateStatusVars) => leadService.updateStatus(leadId, status),
-    onSuccess: (lead) => invalidate(lead.id)
+    onSuccess: (lead, variables) => {
+      if (variables.status === LEAD_STATUS_SOLD) {
+        invalidateAfterSale(lead.id)
+        return
+      }
+      invalidate(lead.id)
+    }
   })
 
   const addNote = useMutation({
@@ -58,7 +71,13 @@ export const useLeadMutations = () => {
 
   const updateLead = useMutation({
     mutationFn: ({ leadId, input, current }: UpdateLeadVars) => leadService.updateDetail(leadId, input, current),
-    onSuccess: (lead) => invalidate(lead.id)
+    onSuccess: (lead, variables) => {
+      if (variables.input.status === LEAD_STATUS_SOLD && variables.current.status !== LEAD_STATUS_SOLD) {
+        invalidateAfterSale(lead.id)
+        return
+      }
+      invalidate(lead.id)
+    }
   })
 
   const deleteLead = useMutation({

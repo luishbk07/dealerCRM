@@ -20,7 +20,7 @@ export const MonthlyChart = ({ data }: MonthlyChartProps) => {
         <Stack spacing={0.5} sx={{ mb: 3 }}>
           <Typography variant='h5'>Ventas por mes</Typography>
           <Typography variant='body2' color='text.secondary'>
-            Calculado desde la vista <code>monthly_sales_view</code>
+            Ingresos y cantidad de ventas por mes
           </Typography>
         </Stack>
         {data.length === 0 ? (

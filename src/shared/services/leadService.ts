@@ -1,4 +1,4 @@
-import { LEAD_STATUS_NEW, LEAD_SENDER_DEALER } from '@/modules/leads/constants/leadStatus'
+import { LEAD_STATUS_NEW, LEAD_STATUS_SOLD, LEAD_SENDER_DEALER } from '@/modules/leads/constants/leadStatus'
 import { LeadServiceError } from '@/modules/leads/errors/leadErrors'
 import type {
   CreateLeadInput,
@@ -19,6 +19,7 @@ import {
   type LeadListParams
 } from '@/shared/repositories'
 import { vehicleRepository } from '@/shared/repositories/vehicleRepository'
+import { saleService } from '@/shared/services/saleService'
 
 export interface CreateLeadFromPublicInput {
   vehicleId: string
@@ -81,6 +82,17 @@ export const leadService = {
 
   updateDetail(leadId: string, input: UpdateLeadInput, current: Lead): Promise<Lead> {
     return wrapServiceCall(async () => {
+      if (input.status === LEAD_STATUS_SOLD && current.status !== LEAD_STATUS_SOLD) {
+        const { lead: soldLead } = await saleService.convertLeadToSale(leadId)
+        const { status: _status, ...rest } = input
+        const hasOtherUpdates = Object.entries(rest).some(([, value]) => value !== undefined)
+        if (!hasOtherUpdates) return soldLead
+
+        const payload: UpdateLeadInput = { ...rest }
+        if (Object.keys(payload).length === 0) return soldLead
+        return leadRepository.update(leadId, payload)
+      }
+
       const payload: UpdateLeadInput = { ...input }
       if (input.status !== undefined && input.status !== current.status) {
         payload.lastContactAt = nowIso()
@@ -94,6 +106,12 @@ export const leadService = {
   },
 
   updateStatus(leadId: string, status: LeadStatus): Promise<Lead> {
+    if (status === LEAD_STATUS_SOLD) {
+      return wrapServiceCall(
+        async () => (await saleService.convertLeadToSale(leadId)).lead,
+        'Failed to convert lead to sale'
+      )
+    }
     return wrapServiceCall(() => leadRepository.updateStatus(leadId, status), 'Failed to update lead status')
   },
 

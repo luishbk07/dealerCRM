@@ -8,7 +8,7 @@ import { DealerOnboardingPage } from '@/features/onboarding'
 import { DashboardPage } from '@/features/dashboard'
 import { VehiclesListPage, VehicleCreatePage, VehicleEditPage, PublicVehiclePage } from '@/features/vehicles'
 import { LeadsListPage, LeadDetailPage } from '@/features/leads'
-import { SalesPage } from '@/features/sales'
+import { SalesListPage, SaleDetailPage } from '@/features/sales'
 
 export const AppRoutes = () => {
   return (
@@ -33,7 +33,8 @@ export const AppRoutes = () => {
           <Route path={paths.vehicleEdit()} element={<VehicleEditPage />} />
           <Route path={paths.leads} element={<LeadsListPage />} />
           <Route path={paths.leadDetail()} element={<LeadDetailPage />} />
-          <Route path={paths.sales} element={<SalesPage />} />
+          <Route path={paths.sales} element={<SalesListPage />} />
+          <Route path={paths.saleDetail()} element={<SaleDetailPage />} />
         </Route>
       </Route>
 

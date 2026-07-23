@@ -20,7 +20,7 @@ export type {
 export { leadNoteRepository, LeadNotesRepository } from './leadNoteRepository'
 export { leadMessageRepository, LeadMessagesRepository } from './leadMessageRepository'
 
-export { salesRepository } from './salesRepository'
+export { salesRepository, SalesRepository } from './salesRepository'
 export type { SaleListParams, SaleListResult, CreateSaleRow } from './salesRepository'
 
 export { dashboardRepository } from './dashboardRepository'

@@ -16,7 +16,11 @@ export const queryKeys = {
   },
   sales: {
     all: ['sales'] as const,
-    list: (params: SaleListParams) => ['sales', 'list', params] as const
+    allSales: ['sales', 'all'] as const,
+    list: (params: SaleListParams) => ['sales', 'list', params] as const,
+    detail: (id: string) => ['sales', 'detail', id] as const,
+    summary: ['sales', 'summary'] as const,
+    monthly: ['sales', 'monthly'] as const
   },
   dashboard: {
     snapshot: ['dashboard', 'snapshot'] as const

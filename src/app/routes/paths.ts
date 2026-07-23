@@ -9,5 +9,6 @@ export const paths = {
   vehiclePublic: (id: string = ':id') => `/vehicles/${id}/public`,
   leads: '/leads',
   leadDetail: (id: string = ':id') => `/leads/${id}`,
-  sales: '/sales'
+  sales: '/sales',
+  saleDetail: (id: string = ':id') => `/sales/${id}`
 } as const
