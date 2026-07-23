@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import type { LeadStatus } from '@/modules/leads/types'
-import { leadService } from '../services/leadService'
+import type { Lead, LeadStatus, UpdateLeadInput } from '@/modules/leads/types'
+import { leadService, type CreateLeadFromDashboardInput } from '../services/leadService'
 import { queryKeys } from '@/shared/queryKeys'
 
 interface AddNoteVars {
@@ -17,6 +17,12 @@ interface AddMessageVars {
 interface UpdateStatusVars {
   leadId: string
   status: LeadStatus
+}
+
+interface UpdateLeadVars {
+  leadId: string
+  input: UpdateLeadInput
+  current: Lead
 }
 
 export const useLeadMutations = () => {
@@ -45,5 +51,20 @@ export const useLeadMutations = () => {
     onSuccess: (message) => invalidate(message.leadId ?? undefined)
   })
 
-  return { updateStatus, addNote, addMessage }
+  const createLead = useMutation({
+    mutationFn: (input: CreateLeadFromDashboardInput) => leadService.createFromDashboard(input),
+    onSuccess: () => invalidate()
+  })
+
+  const updateLead = useMutation({
+    mutationFn: ({ leadId, input, current }: UpdateLeadVars) => leadService.updateDetail(leadId, input, current),
+    onSuccess: (lead) => invalidate(lead.id)
+  })
+
+  const deleteLead = useMutation({
+    mutationFn: (leadId: string) => leadService.delete(leadId),
+    onSuccess: () => invalidate()
+  })
+
+  return { updateStatus, addNote, addMessage, createLead, updateLead, deleteLead }
 }

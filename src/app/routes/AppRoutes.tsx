@@ -7,7 +7,7 @@ import { LoginPage, RegisterPage } from '@/features/auth'
 import { DealerOnboardingPage } from '@/features/onboarding'
 import { DashboardPage } from '@/features/dashboard'
 import { VehiclesListPage, VehicleCreatePage, VehicleEditPage, PublicVehiclePage } from '@/features/vehicles'
-import { LeadsInboxPage } from '@/features/leads'
+import { LeadsListPage, LeadDetailPage } from '@/features/leads'
 import { SalesPage } from '@/features/sales'
 
 export const AppRoutes = () => {
@@ -31,8 +31,8 @@ export const AppRoutes = () => {
           <Route path={paths.vehicles} element={<VehiclesListPage />} />
           <Route path={paths.vehicleNew} element={<VehicleCreatePage />} />
           <Route path={paths.vehicleEdit()} element={<VehicleEditPage />} />
-          <Route path={paths.leads} element={<LeadsInboxPage />} />
-          <Route path={paths.leadDetail()} element={<LeadsInboxPage />} />
+          <Route path={paths.leads} element={<LeadsListPage />} />
+          <Route path={paths.leadDetail()} element={<LeadDetailPage />} />
           <Route path={paths.sales} element={<SalesPage />} />
         </Route>
       </Route>

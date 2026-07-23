@@ -9,7 +9,9 @@ export const queryKeys = {
   },
   leads: {
     all: ['leads'] as const,
+    allLeads: ['leads', 'all'] as const,
     list: (params: LeadListParams) => ['leads', 'list', params] as const,
+    search: (params: import('@/modules/leads/types').LeadSearchParams) => ['leads', 'search', params] as const,
     detail: (id: string) => ['leads', 'detail', id] as const
   },
   sales: {

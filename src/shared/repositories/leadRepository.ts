@@ -36,6 +36,7 @@ export interface UpdateLeadRow {
   name?: string | null
   phone?: string | null
   vehicle_id?: string | null
+  source?: string | null
 }
 
 const toLeadStatus = (value: string | null | undefined): LeadStatus => {
@@ -59,7 +60,8 @@ const mapUpdateInput = (input: UpdateLeadInput): UpdateLeadRow => ({
   ...(input.message !== undefined ? { message: input.message } : {}),
   ...(input.name !== undefined ? { name: input.name } : {}),
   ...(input.phone !== undefined ? { phone: input.phone } : {}),
-  ...(input.vehicleId !== undefined ? { vehicle_id: input.vehicleId } : {})
+  ...(input.vehicleId !== undefined ? { vehicle_id: input.vehicleId } : {}),
+  ...(input.source !== undefined ? { source: input.source } : {})
 })
 
 export type { LeadListResult } from '@/modules/leads/types/filters'

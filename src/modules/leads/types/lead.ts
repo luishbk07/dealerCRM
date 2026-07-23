@@ -30,4 +30,5 @@ export interface UpdateLeadInput {
   name?: string | null
   phone?: string | null
   vehicleId?: string | null
+  source?: string | null
 }

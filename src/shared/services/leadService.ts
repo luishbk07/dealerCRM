@@ -79,6 +79,16 @@ export const leadService = {
     return wrapServiceCall(() => leadRepository.update(leadId, input), 'Failed to update lead')
   },
 
+  updateDetail(leadId: string, input: UpdateLeadInput, current: Lead): Promise<Lead> {
+    return wrapServiceCall(async () => {
+      const payload: UpdateLeadInput = { ...input }
+      if (input.status !== undefined && input.status !== current.status) {
+        payload.lastContactAt = nowIso()
+      }
+      return leadRepository.update(leadId, payload)
+    }, 'Failed to update lead')
+  },
+
   delete(leadId: string): Promise<void> {
     return wrapServiceCall(() => leadRepository.delete(leadId), 'Failed to delete lead')
   },
