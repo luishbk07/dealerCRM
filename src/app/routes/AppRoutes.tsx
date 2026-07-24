@@ -9,6 +9,7 @@ import { DashboardPage } from '@/features/dashboard'
 import { VehiclesListPage, VehicleCreatePage, VehicleEditPage, PublicVehiclePage } from '@/features/vehicles'
 import { LeadsListPage, LeadDetailPage } from '@/features/leads'
 import { SalesListPage, SaleDetailPage } from '@/features/sales'
+import { DealerSettingsPage } from '@/features/settings'
 
 export const AppRoutes = () => {
   return (
@@ -35,6 +36,7 @@ export const AppRoutes = () => {
           <Route path={paths.leadDetail()} element={<LeadDetailPage />} />
           <Route path={paths.sales} element={<SalesListPage />} />
           <Route path={paths.saleDetail()} element={<SaleDetailPage />} />
+          <Route path={paths.settings} element={<DealerSettingsPage />} />
         </Route>
       </Route>
 

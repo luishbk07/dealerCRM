@@ -4,6 +4,7 @@ import DashboardOutlinedIcon from '@mui/icons-material/DashboardOutlined'
 import DirectionsCarFilledOutlinedIcon from '@mui/icons-material/DirectionsCarFilledOutlined'
 import ChatBubbleOutlineOutlinedIcon from '@mui/icons-material/ChatBubbleOutlineOutlined'
 import TrendingUpOutlinedIcon from '@mui/icons-material/TrendingUpOutlined'
+import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined'
 import { paths } from '@/app/routes/paths'
 
 export interface NavItem {
@@ -16,5 +17,6 @@ export const navItems: NavItem[] = [
   { label: 'Dashboard', to: paths.dashboard, icon: DashboardOutlinedIcon },
   { label: 'Vehículos', to: paths.vehicles, icon: DirectionsCarFilledOutlinedIcon },
   { label: 'Leads', to: paths.leads, icon: ChatBubbleOutlineOutlinedIcon },
-  { label: 'Ventas', to: paths.sales, icon: TrendingUpOutlinedIcon }
+  { label: 'Ventas', to: paths.sales, icon: TrendingUpOutlinedIcon },
+  { label: 'Configuración', to: paths.settings, icon: SettingsOutlinedIcon }
 ]

@@ -1,5 +1,6 @@
 import {
   storageRepository,
+  STORAGE_BUCKETS,
   type UploadedObject
 } from '@/shared/repositories/storageRepository'
 import type { VehicleImage } from '@/shared/types'
@@ -132,9 +133,12 @@ export const storageService = {
       file.name,
       prepared.extension
     )
-    return storageRepository.uploadBytes(storagePath, prepared.buffer, {
-      contentType: prepared.contentType
-    })
+    return storageRepository.uploadBytes(
+      storagePath,
+      prepared.buffer,
+      { contentType: prepared.contentType },
+      STORAGE_BUCKETS.vehicleImages
+    )
   },
 
   async uploadVehicleImages(

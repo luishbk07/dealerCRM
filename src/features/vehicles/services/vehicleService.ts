@@ -1,6 +1,7 @@
 import type { Vehicle, VehicleImage, VehicleWithImages } from '@/shared/types'
 import {
   storageRepository,
+  STORAGE_BUCKETS,
   vehicleImageRepository,
   vehicleRepository,
   type CreateVehicleRow,
@@ -57,12 +58,12 @@ const toRow = (payload: VehicleFormPayload): UpdateVehicleRow => ({
 const buildPrimaryImageUrl = (images: VehicleImage[]): string | null => {
   if (images.length === 0) return null
   const primary = images.find((image) => image.isPrimary) ?? images[0]
-  if (primary.storagePath) return storageRepository.getPublicUrl(primary.storagePath)
+  if (primary.storagePath) return storageRepository.getPublicUrl(primary.storagePath, STORAGE_BUCKETS.vehicleImages)
   return primary.url
 }
 
 const resolveImageUrl = (image: VehicleImage): string => {
-  if (image.storagePath) return storageRepository.getPublicUrl(image.storagePath)
+  if (image.storagePath) return storageRepository.getPublicUrl(image.storagePath, STORAGE_BUCKETS.vehicleImages)
   return image.url
 }
 
@@ -140,7 +141,7 @@ export const vehicleService = {
     await vehicleRepository.remove(id)
     if (paths.length > 0) {
       try {
-        await storageRepository.remove(paths)
+        await storageRepository.remove(paths, STORAGE_BUCKETS.vehicleImages)
       } catch {
         // Si Storage falla, los registros ya están borrados; el archivo huérfano se puede limpiar luego.
       }
@@ -160,7 +161,7 @@ export const vehicleService = {
     await vehicleImageRepository.remove(image.id)
     if (image.storagePath) {
       try {
-        await storageRepository.remove([image.storagePath])
+        await storageRepository.remove([image.storagePath], STORAGE_BUCKETS.vehicleImages)
       } catch {
         // Archivo huérfano se puede limpiar luego.
       }

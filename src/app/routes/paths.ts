@@ -10,5 +10,6 @@ export const paths = {
   leads: '/leads',
   leadDetail: (id: string = ':id') => `/leads/${id}`,
   sales: '/sales',
-  saleDetail: (id: string = ':id') => `/sales/${id}`
+  saleDetail: (id: string = ':id') => `/sales/${id}`,
+  settings: '/settings'
 } as const

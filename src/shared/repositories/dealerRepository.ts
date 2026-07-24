@@ -1,28 +1,64 @@
 import { supabase } from '@/shared/services/supabase'
-import type { Dealer } from '@/shared/types'
+import type { Dealer, UpdateDealerInput } from '@/shared/types'
 
 interface DealerRow {
   id: string
   owner_id: string
   name: string
+  email: string | null
   phone: string | null
   whatsapp: string | null
   address: string | null
-  logo_url: string | null
+  city: string | null
+  state: string | null
+  zip_code: string | null
+  country: string | null
+  website: string | null
+  slug: string | null
+  logo_path: string | null
+  banner_path: string | null
+  is_active: boolean | null
   created_at: string
 }
 
-const DEALER_COLUMNS = 'id, owner_id, name, phone, whatsapp, address, logo_url, created_at'
+const DEALER_COLUMNS = `
+  id, owner_id, name, email, phone, whatsapp, address, city, state, zip_code,
+  country, website, slug, logo_path, banner_path, is_active, created_at
+`
 
 const mapRow = (row: DealerRow): Dealer => ({
   id: row.id,
   ownerId: row.owner_id,
   name: row.name,
-  phone: row.phone ?? undefined,
-  whatsapp: row.whatsapp ?? undefined,
-  address: row.address ?? undefined,
-  logoUrl: row.logo_url ?? undefined,
+  email: row.email,
+  phone: row.phone,
+  whatsapp: row.whatsapp,
+  address: row.address,
+  city: row.city,
+  state: row.state,
+  zipCode: row.zip_code,
+  country: row.country,
+  website: row.website,
+  slug: row.slug,
+  logoPath: row.logo_path,
+  bannerPath: row.banner_path,
+  isActive: Boolean(row.is_active),
   createdAt: row.created_at
+})
+
+const mapUpdateInput = (input: UpdateDealerInput): Partial<DealerRow> => ({
+  ...(input.name !== undefined ? { name: input.name } : {}),
+  ...(input.email !== undefined ? { email: input.email } : {}),
+  ...(input.phone !== undefined ? { phone: input.phone } : {}),
+  ...(input.whatsapp !== undefined ? { whatsapp: input.whatsapp } : {}),
+  ...(input.address !== undefined ? { address: input.address } : {}),
+  ...(input.city !== undefined ? { city: input.city } : {}),
+  ...(input.state !== undefined ? { state: input.state } : {}),
+  ...(input.zipCode !== undefined ? { zip_code: input.zipCode } : {}),
+  ...(input.country !== undefined ? { country: input.country } : {}),
+  ...(input.website !== undefined ? { website: input.website } : {}),
+  ...(input.logoPath !== undefined ? { logo_path: input.logoPath } : {}),
+  ...(input.bannerPath !== undefined ? { banner_path: input.bannerPath } : {})
 })
 
 export interface CreateDealerPayload {
@@ -33,7 +69,7 @@ export interface CreateDealerPayload {
   address: string | null
 }
 
-export const dealerRepository = {
+export class DealerRepository {
   async getById(id: string): Promise<Dealer | null> {
     const { data, error } = await supabase
       .from('dealers')
@@ -42,7 +78,7 @@ export const dealerRepository = {
       .maybeSingle<DealerRow>()
     if (error) throw new Error(error.message)
     return data ? mapRow(data) : null
-  },
+  }
 
   async getByOwnerId(ownerId: string): Promise<Dealer | null> {
     const { data, error } = await supabase
@@ -52,7 +88,7 @@ export const dealerRepository = {
       .maybeSingle<DealerRow>()
     if (error) throw new Error(error.message)
     return data ? mapRow(data) : null
-  },
+  }
 
   async create(payload: CreateDealerPayload): Promise<Dealer> {
     const { data, error } = await supabase
@@ -62,12 +98,17 @@ export const dealerRepository = {
       .single<DealerRow>()
     if (error) throw new Error(error.message)
     return mapRow(data)
-  },
+  }
 
-  async updateLogo(id: string, logoUrl: string | null): Promise<Dealer> {
+  async update(id: string, input: UpdateDealerInput): Promise<Dealer> {
+    const patch = mapUpdateInput(input)
+    if (Object.keys(patch).length === 0) {
+      throw new Error('Update dealer requires at least one field')
+    }
+
     const { data, error } = await supabase
       .from('dealers')
-      .update({ logo_url: logoUrl })
+      .update(patch)
       .eq('id', id)
       .select(DEALER_COLUMNS)
       .single<DealerRow>()
@@ -75,3 +116,5 @@ export const dealerRepository = {
     return mapRow(data)
   }
 }
+
+export const dealerRepository = new DealerRepository()

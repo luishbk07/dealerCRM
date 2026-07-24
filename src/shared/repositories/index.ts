@@ -25,8 +25,8 @@ export type { SaleListParams, SaleListResult, CreateSaleRow } from './salesRepos
 
 export { dashboardRepository } from './dashboardRepository'
 
-export { dealerRepository } from './dealerRepository'
+export { dealerRepository, DealerRepository } from './dealerRepository'
 export type { CreateDealerPayload } from './dealerRepository'
 
-export { storageRepository, STORAGE_BUCKET } from './storageRepository'
+export { storageRepository, STORAGE_BUCKET, STORAGE_BUCKETS, type StorageBucket } from './storageRepository'
 export type { UploadedObject, UploadBytesOptions } from './storageRepository'
