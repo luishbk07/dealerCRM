@@ -9,9 +9,18 @@ interface SidebarProps {
   mobileOpen: boolean
   onClose: () => void
   dealershipName: string
+  logoUrl?: string | null
 }
 
-const SidebarContent = ({ dealershipName, onItemClick }: { dealershipName: string, onItemClick?: () => void }) => {
+const SidebarContent = ({
+  dealershipName,
+  logoUrl,
+  onItemClick
+}: {
+  dealershipName: string
+  logoUrl?: string | null
+  onItemClick?: () => void
+}) => {
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       <Stack direction='row' alignItems='center' spacing={1.5} sx={{ px: 3, py: 2.5 }}>
@@ -20,14 +29,27 @@ const SidebarContent = ({ dealershipName, onItemClick }: { dealershipName: strin
             width: 36,
             height: 36,
             borderRadius: 2,
-            backgroundColor: 'primary.main',
+            backgroundColor: logoUrl ? 'background.paper' : 'primary.main',
             color: 'primary.contrastText',
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'center'
+            justifyContent: 'center',
+            overflow: 'hidden',
+            border: logoUrl ? '1px solid' : 'none',
+            borderColor: 'divider',
+            flexShrink: 0
           }}
         >
-          <DirectionsCarFilledIcon fontSize='small' />
+          {logoUrl ? (
+            <Box
+              component='img'
+              src={logoUrl}
+              alt={`Logo de ${dealershipName}`}
+              sx={{ width: '100%', height: '100%', objectFit: 'contain' }}
+            />
+          ) : (
+            <DirectionsCarFilledIcon fontSize='small' />
+          )}
         </Box>
         <Box>
           <Typography variant='subtitle1' sx={{ fontWeight: 700, lineHeight: 1.2 }}>
@@ -83,7 +105,7 @@ const SidebarContent = ({ dealershipName, onItemClick }: { dealershipName: strin
   )
 }
 
-export const Sidebar = ({ mobileOpen, onClose, dealershipName }: SidebarProps) => {
+export const Sidebar = ({ mobileOpen, onClose, dealershipName, logoUrl }: SidebarProps) => {
   return (
     <Box
       component='nav'
@@ -103,7 +125,7 @@ export const Sidebar = ({ mobileOpen, onClose, dealershipName }: SidebarProps) =
           '& .MuiDrawer-paper': { width: DRAWER_WIDTH, boxSizing: 'border-box' }
         }}
       >
-        <SidebarContent dealershipName={dealershipName} onItemClick={onClose} />
+        <SidebarContent dealershipName={dealershipName} logoUrl={logoUrl} onItemClick={onClose} />
       </Drawer>
       <Drawer
         variant='permanent'
@@ -118,7 +140,7 @@ export const Sidebar = ({ mobileOpen, onClose, dealershipName }: SidebarProps) =
           }
         }}
       >
-        <SidebarContent dealershipName={dealershipName} />
+        <SidebarContent dealershipName={dealershipName} logoUrl={logoUrl} />
       </Drawer>
     </Box>
   )

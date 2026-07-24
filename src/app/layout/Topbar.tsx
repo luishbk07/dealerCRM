@@ -10,10 +10,11 @@ import { SIDEBAR_WIDTH } from './Sidebar'
 
 interface TopbarProps {
   user: User
+  logoUrl?: string | null
   onToggleMobile: () => void
 }
 
-export const Topbar = ({ user, onToggleMobile }: TopbarProps) => {
+export const Topbar = ({ user, logoUrl, onToggleMobile }: TopbarProps) => {
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null)
   const { signOut } = useAuth()
   const navigate = useNavigate()
@@ -61,7 +62,18 @@ export const Topbar = ({ user, onToggleMobile }: TopbarProps) => {
         </Stack>
         <Stack direction='row' alignItems='center' spacing={1}>
           <IconButton onClick={(event) => setAnchorEl(event.currentTarget)} sx={{ p: 0.5 }}>
-            <Avatar sx={{ width: 36, height: 36, bgcolor: 'primary.main' }}>{initials}</Avatar>
+            <Avatar
+              src={logoUrl ?? undefined}
+              alt={logoUrl ? 'Logo del concesionario' : user.fullName}
+              sx={{
+                width: 36,
+                height: 36,
+                bgcolor: 'primary.main',
+                '& img': { objectFit: 'contain', p: logoUrl ? 0.25 : 0 }
+              }}
+            >
+              {!logoUrl ? initials : null}
+            </Avatar>
           </IconButton>
           <Menu
             anchorEl={anchorEl}
