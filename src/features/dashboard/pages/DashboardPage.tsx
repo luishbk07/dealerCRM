@@ -9,10 +9,12 @@ import { RecentLeadsList } from '../components/RecentLeadsList'
 import { PipelineSnapshot } from '../components/PipelineSnapshot'
 import { SalesTrendChart } from '../components/SalesTrendChart'
 import { DashboardEmptyBanner, QuickActionsCard } from '../components/QuickActionsCard'
+import { RecentActivityFeed } from '../components/RecentActivityFeed'
 import { countPendingLeads } from '../utils/dashboardMetrics'
 
 export const DashboardPage = () => {
-  const { snapshot, recentLeads, vehicleById, isLoading, isError, error } = useDashboardPage()
+  const { snapshot, recentLeads, vehicleById, activities, isLoading, isError, error } =
+    useDashboardPage()
 
   if (isLoading) {
     return <DashboardSkeleton />
@@ -34,7 +36,7 @@ export const DashboardPage = () => {
 
   return (
     <Fade in timeout={300}>
-      <Box>
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
         <PageHeader
           title='Dashboard'
           subtitle='Resumen rápido de tu operación de hoy'
@@ -47,7 +49,11 @@ export const DashboardPage = () => {
 
         <DashboardSummaryCards stats={stats} pendingLeads={pendingLeads} />
 
-        <Grid container spacing={2.5} sx={{ mb: 3 }}>
+        <Box sx={{ order: { xs: 2, lg: 4 } }}>
+          <RecentActivityFeed activities={activities} />
+        </Box>
+
+        <Grid container spacing={2.5} sx={{ order: { xs: 3, lg: 2 } }}>
           <Grid size={{ xs: 12, lg: 8 }}>
             <RecentLeadsList
               leads={recentLeads}
@@ -60,7 +66,7 @@ export const DashboardPage = () => {
           </Grid>
         </Grid>
 
-        <Grid container spacing={2.5}>
+        <Grid container spacing={2.5} sx={{ order: { xs: 4, lg: 3 } }}>
           <Grid size={{ xs: 12, lg: 7 }}>
             <SalesTrendChart data={monthlySales} />
           </Grid>

@@ -1,0 +1,125 @@
+import DirectionsCarFilledOutlinedIcon from '@mui/icons-material/DirectionsCarFilledOutlined'
+import PersonOutlineIcon from '@mui/icons-material/PersonOutline'
+import PaidOutlinedIcon from '@mui/icons-material/PaidOutlined'
+import TrendingUpOutlinedIcon from '@mui/icons-material/TrendingUpOutlined'
+import SellOutlinedIcon from '@mui/icons-material/SellOutlined'
+import {
+  Box,
+  Card,
+  CardContent,
+  Divider,
+  Stack,
+  Typography
+} from '@mui/material'
+import type { ReactNode } from 'react'
+import { formatRelative } from '@/shared/utils/format'
+import type { ActivityEvent, ActivityEventType } from '../types/activity'
+
+interface RecentActivityFeedProps {
+  activities: ActivityEvent[]
+}
+
+const ACTIVITY_ICONS: Record<ActivityEventType, ReactNode> = {
+  vehicle_created: <DirectionsCarFilledOutlinedIcon fontSize='small' />,
+  vehicle_sold: <SellOutlinedIcon fontSize='small' />,
+  lead_created: <PersonOutlineIcon fontSize='small' />,
+  lead_status_changed: <TrendingUpOutlinedIcon fontSize='small' />,
+  sale_registered: <PaidOutlinedIcon fontSize='small' />
+}
+
+const ACTIVITY_COLORS: Record<ActivityEventType, string> = {
+  vehicle_created: '#2563EB',
+  vehicle_sold: '#10B981',
+  lead_created: '#0EA5E9',
+  lead_status_changed: '#8B5CF6',
+  sale_registered: '#F59E0B'
+}
+
+const ActivityIcon = ({ type }: { type: ActivityEventType }) => (
+  <Box
+    sx={{
+      width: 36,
+      height: 36,
+      borderRadius: 2,
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      flexShrink: 0,
+      backgroundColor: `${ACTIVITY_COLORS[type]}1A`,
+      color: ACTIVITY_COLORS[type]
+    }}
+  >
+    {ACTIVITY_ICONS[type]}
+  </Box>
+)
+
+export const RecentActivityFeed = ({ activities }: RecentActivityFeedProps) => {
+  return (
+    <Card>
+      <CardContent sx={{ p: 0 }}>
+        <Box sx={{ p: 3, pb: 2 }}>
+          <Typography variant='h5'>Actividad reciente</Typography>
+          <Typography variant='body2' color='text.secondary'>
+            Lo último que ocurrió en tu CRM
+          </Typography>
+        </Box>
+        <Divider />
+        {activities.length === 0 ? (
+          <Box sx={{ p: 4, textAlign: 'center' }}>
+            <Typography variant='body2' color='text.secondary'>
+              Aún no hay actividad registrada.
+            </Typography>
+          </Box>
+        ) : (
+          <Box
+            sx={{
+              maxHeight: { xs: 360, md: 420 },
+              overflowY: 'auto'
+            }}
+          >
+            <Stack divider={<Divider flexItem />} sx={{ p: 0 }}>
+              {activities.map((activity) => (
+                <Stack
+                  key={activity.id}
+                  direction='row'
+                  spacing={1.5}
+                  alignItems='flex-start'
+                  sx={{
+                    px: 3,
+                    py: 2,
+                    transition: 'background-color 0.15s ease',
+                    '&:hover': { backgroundColor: 'action.hover' }
+                  }}
+                >
+                  <ActivityIcon type={activity.type} />
+                  <Box sx={{ minWidth: 0, flex: 1 }}>
+                    <Stack
+                      direction='row'
+                      justifyContent='space-between'
+                      alignItems='flex-start'
+                      spacing={1}
+                    >
+                      <Typography variant='subtitle2' sx={{ fontWeight: 600 }}>
+                        {activity.title}
+                      </Typography>
+                      <Typography
+                        variant='caption'
+                        color='text.secondary'
+                        sx={{ flexShrink: 0, whiteSpace: 'nowrap' }}
+                      >
+                        {formatRelative(activity.occurredAt)}
+                      </Typography>
+                    </Stack>
+                    <Typography variant='body2' color='text.secondary' sx={{ mt: 0.5 }}>
+                      {activity.description}
+                    </Typography>
+                  </Box>
+                </Stack>
+              ))}
+            </Stack>
+          </Box>
+        )}
+      </CardContent>
+    </Card>
+  )
+}

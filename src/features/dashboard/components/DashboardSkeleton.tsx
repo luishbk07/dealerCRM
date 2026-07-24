@@ -72,6 +72,8 @@ export const DashboardSkeleton = () => {
           <PanelSkeleton rows={6} />
         </Grid>
       </Grid>
+
+      <PanelSkeleton rows={5} />
     </Box>
   )
 }
