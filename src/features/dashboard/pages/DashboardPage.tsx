@@ -1,100 +1,74 @@
-import { Alert, Box, Button } from '@mui/material'
+import { Alert, Box, Fade } from '@mui/material'
 import Grid from '@mui/material/Grid2'
-import AddIcon from '@mui/icons-material/Add'
-import DirectionsCarFilledOutlinedIcon from '@mui/icons-material/DirectionsCarFilledOutlined'
-import FiberNewOutlinedIcon from '@mui/icons-material/FiberNewOutlined'
-import HourglassEmptyOutlinedIcon from '@mui/icons-material/HourglassEmptyOutlined'
-import PaidOutlinedIcon from '@mui/icons-material/PaidOutlined'
-import { useNavigate } from 'react-router-dom'
-import { KpiCard, LoadingState, PageHeader } from '@/shared/components'
-import { paths } from '@/app/routes/paths'
-import { formatCurrency } from '@/shared/utils/format'
-import { useDashboardStats } from '../hooks/useDashboardStats'
-import { useLeads } from '@/features/leads/hooks/useLeads'
+import { PageHeader } from '@/shared/components'
+import { isDev } from '@/shared/utils/environment'
+import { useDashboardPage } from '../hooks/useDashboardPage'
+import { DashboardSummaryCards } from '../components/DashboardSummaryCards'
+import { DashboardSkeleton } from '../components/DashboardSkeleton'
 import { RecentLeadsList } from '../components/RecentLeadsList'
 import { PipelineSnapshot } from '../components/PipelineSnapshot'
-import { isDev } from '@/shared/utils/environment'
-
-const RECENT_LEADS_PARAMS = { page: 0, pageSize: 5 }
+import { SalesTrendChart } from '../components/SalesTrendChart'
+import { DashboardEmptyBanner, QuickActionsCard } from '../components/QuickActionsCard'
+import { countPendingLeads } from '../utils/dashboardMetrics'
 
 export const DashboardPage = () => {
-  const navigate = useNavigate()
-  const snapshotQuery = useDashboardStats()
-  const recentLeadsQuery = useLeads(RECENT_LEADS_PARAMS)
+  const { snapshot, recentLeads, vehicleById, isLoading, isError, error } = useDashboardPage()
 
-  if (snapshotQuery.isLoading || recentLeadsQuery.isLoading) {
-    return <LoadingState message='Cargando tu dashboard…' />
-  }
-  if (snapshotQuery.isError) {
-    return <Alert severity='error'>No pudimos cargar las métricas. Por favor contacta al soporte. {isDev ? (snapshotQuery.error as Error).message : ''}</Alert>
-  }
-  if (recentLeadsQuery.isError) {
-    return <Alert severity='error'>No pudimos cargar los leads. Por favor contacta al soporte. {isDev ? (recentLeadsQuery.error as Error).message : ''}</Alert>
+  if (isLoading) {
+    return <DashboardSkeleton />
   }
 
-  const snapshot = snapshotQuery.data
-  const recentLeads = recentLeadsQuery.data?.items ?? []
+  if (isError) {
+    return (
+      <Alert severity='error'>
+        No pudimos cargar tu dashboard. Por favor contacta al soporte.
+        {isDev ? ` ${(error as Error).message}` : ''}
+      </Alert>
+    )
+  }
+
   if (!snapshot) return null
 
-  const { stats, leadConversion } = snapshot
-  const pendingLeads = stats.newLeads + stats.contactedLeads + stats.qualifiedLeads
+  const { stats, monthlySales, leadConversion } = snapshot
+  const pendingLeads = countPendingLeads(leadConversion)
 
   return (
-    <Box>
-      <PageHeader
-        title='Dashboard'
-        subtitle='Resumen rápido de tu operación de hoy'
-        actions={
-          <Button variant='contained' startIcon={<AddIcon />} onClick={() => navigate(paths.vehicleNew)}>
-            Publicar vehículo
-          </Button>
-        }
-      />
+    <Fade in timeout={300}>
+      <Box>
+        <PageHeader
+          title='Dashboard'
+          subtitle='Resumen rápido de tu operación de hoy'
+        />
 
-      <Grid container spacing={2.5} sx={{ mb: 3 }}>
-        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-          <KpiCard
-            label='Vehículos activos'
-            value={stats.activeVehicles}
-            icon={<DirectionsCarFilledOutlinedIcon />}
-            accentColor='#2563EB'
-          />
-        </Grid>
-        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-          <KpiCard
-            label='Leads nuevos'
-            value={stats.newLeads}
-            icon={<FiberNewOutlinedIcon />}
-            accentColor='#0EA5E9'
-          />
-        </Grid>
-        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-          <KpiCard
-            label='Leads pendientes'
-            value={pendingLeads}
-            icon={<HourglassEmptyOutlinedIcon />}
-            accentColor='#F59E0B'
-          />
-        </Grid>
-        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-          <KpiCard
-            label='Ventas del mes'
-            value={stats.monthlySalesCount}
-            icon={<PaidOutlinedIcon />}
-            accentColor='#10B981'
-            trend={stats.monthlyRevenue > 0 ? formatCurrency(stats.monthlyRevenue) : undefined}
-          />
-        </Grid>
-      </Grid>
+        <DashboardEmptyBanner
+          showNoVehicles={stats.totalVehicles === 0}
+          showNoLeads={stats.totalLeads === 0}
+        />
 
-      <Grid container spacing={2.5}>
-        <Grid size={{ xs: 12, md: 7 }}>
-          <RecentLeadsList leads={recentLeads} />
+        <DashboardSummaryCards stats={stats} pendingLeads={pendingLeads} />
+
+        <Grid container spacing={2.5} sx={{ mb: 3 }}>
+          <Grid size={{ xs: 12, lg: 8 }}>
+            <RecentLeadsList
+              leads={recentLeads}
+              vehicleById={vehicleById}
+              totalLeads={stats.totalLeads}
+            />
+          </Grid>
+          <Grid size={{ xs: 12, lg: 4 }}>
+            <QuickActionsCard />
+          </Grid>
         </Grid>
-        <Grid size={{ xs: 12, md: 5 }}>
-          <PipelineSnapshot data={leadConversion} />
+
+        <Grid container spacing={2.5}>
+          <Grid size={{ xs: 12, lg: 7 }}>
+            <SalesTrendChart data={monthlySales} />
+          </Grid>
+          <Grid size={{ xs: 12, lg: 5 }}>
+            <PipelineSnapshot data={leadConversion} />
+          </Grid>
         </Grid>
-      </Grid>
-    </Box>
+      </Box>
+    </Fade>
   )
 }

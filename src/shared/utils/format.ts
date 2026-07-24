@@ -48,6 +48,15 @@ export const formatDate = (iso: string | null | undefined): string => {
   return date.toLocaleDateString('es-DO', { day: '2-digit', month: 'short', year: 'numeric' })
 }
 
+/** Month label for charts — accepts `YYYY-MM-DD` or full ISO timestamps from Supabase. */
+export const formatMonthLabel = (monthStart: string | null | undefined): string => {
+  if (!monthStart) return '—'
+  const datePart = monthStart.slice(0, 10)
+  const date = new Date(`${datePart}T12:00:00`)
+  if (Number.isNaN(date.getTime())) return '—'
+  return date.toLocaleDateString('es-DO', { month: 'short', year: '2-digit' })
+}
+
 export const formatDateTime = (iso: string | null | undefined): string => {
   if (!iso) return '—'
   const date = new Date(iso)

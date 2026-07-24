@@ -1,14 +1,9 @@
 import { Box, Card, CardContent, Stack, Typography } from '@mui/material'
 import type { MonthlySalesPoint } from '@/shared/types'
-import { formatCurrency } from '@/shared/utils/format'
+import { formatCurrency, formatMonthLabel } from '@/shared/utils/format'
 
 interface MonthlyChartProps {
   data: MonthlySalesPoint[]
-}
-
-const formatMonthLabel = (iso: string): string => {
-  const date = new Date(iso)
-  return date.toLocaleDateString('es-DO', { month: 'short', year: '2-digit' })
 }
 
 export const MonthlyChart = ({ data }: MonthlyChartProps) => {
