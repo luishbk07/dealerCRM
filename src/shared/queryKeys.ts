@@ -25,6 +25,9 @@ export const queryKeys = {
   dashboard: {
     snapshot: ['dashboard', 'snapshot'] as const
   },
+  activity: {
+    latest: (limit: number) => ['activity', 'latest', limit] as const
+  },
   dealer: {
     settings: (id: string) => ['dealer', 'settings', id] as const
   },

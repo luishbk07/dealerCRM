@@ -2,7 +2,10 @@ import DirectionsCarFilledOutlinedIcon from '@mui/icons-material/DirectionsCarFi
 import PersonOutlineIcon from '@mui/icons-material/PersonOutline'
 import PaidOutlinedIcon from '@mui/icons-material/PaidOutlined'
 import TrendingUpOutlinedIcon from '@mui/icons-material/TrendingUpOutlined'
-import SellOutlinedIcon from '@mui/icons-material/SellOutlined'
+import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline'
+import EditOutlinedIcon from '@mui/icons-material/EditOutlined'
+import ImageOutlinedIcon from '@mui/icons-material/ImageOutlined'
+import StorefrontOutlinedIcon from '@mui/icons-material/StorefrontOutlined'
 import {
   Box,
   Card,
@@ -13,29 +16,39 @@ import {
 } from '@mui/material'
 import type { ReactNode } from 'react'
 import { formatRelative } from '@/shared/utils/format'
-import type { ActivityEvent, ActivityEventType } from '../types/activity'
+import type { ActivityAction, ActivityLog } from '@/shared/types/activityLog'
 
 interface RecentActivityFeedProps {
-  activities: ActivityEvent[]
+  activities: ActivityLog[]
 }
 
-const ACTIVITY_ICONS: Record<ActivityEventType, ReactNode> = {
+const ACTIVITY_ICONS: Record<ActivityAction, ReactNode> = {
   vehicle_created: <DirectionsCarFilledOutlinedIcon fontSize='small' />,
-  vehicle_sold: <SellOutlinedIcon fontSize='small' />,
+  vehicle_updated: <EditOutlinedIcon fontSize='small' />,
+  vehicle_deleted: <DeleteOutlineIcon fontSize='small' />,
   lead_created: <PersonOutlineIcon fontSize='small' />,
+  lead_updated: <TrendingUpOutlinedIcon fontSize='small' />,
   lead_status_changed: <TrendingUpOutlinedIcon fontSize='small' />,
-  sale_registered: <PaidOutlinedIcon fontSize='small' />
+  sale_created: <PaidOutlinedIcon fontSize='small' />,
+  dealer_updated: <StorefrontOutlinedIcon fontSize='small' />,
+  logo_updated: <ImageOutlinedIcon fontSize='small' />,
+  banner_updated: <ImageOutlinedIcon fontSize='small' />
 }
 
-const ACTIVITY_COLORS: Record<ActivityEventType, string> = {
+const ACTIVITY_COLORS: Record<ActivityAction, string> = {
   vehicle_created: '#2563EB',
-  vehicle_sold: '#10B981',
+  vehicle_updated: '#0EA5E9',
+  vehicle_deleted: '#EF4444',
   lead_created: '#0EA5E9',
+  lead_updated: '#8B5CF6',
   lead_status_changed: '#8B5CF6',
-  sale_registered: '#F59E0B'
+  sale_created: '#F59E0B',
+  dealer_updated: '#64748B',
+  logo_updated: '#10B981',
+  banner_updated: '#10B981'
 }
 
-const ActivityIcon = ({ type }: { type: ActivityEventType }) => (
+const ActivityIcon = ({ action }: { action: ActivityAction }) => (
   <Box
     sx={{
       width: 36,
@@ -45,11 +58,11 @@ const ActivityIcon = ({ type }: { type: ActivityEventType }) => (
       alignItems: 'center',
       justifyContent: 'center',
       flexShrink: 0,
-      backgroundColor: `${ACTIVITY_COLORS[type]}1A`,
-      color: ACTIVITY_COLORS[type]
+      backgroundColor: `${ACTIVITY_COLORS[action]}1A`,
+      color: ACTIVITY_COLORS[action]
     }}
   >
-    {ACTIVITY_ICONS[type]}
+    {ACTIVITY_ICONS[action]}
   </Box>
 )
 
@@ -67,7 +80,7 @@ export const RecentActivityFeed = ({ activities }: RecentActivityFeedProps) => {
         {activities.length === 0 ? (
           <Box sx={{ p: 4, textAlign: 'center' }}>
             <Typography variant='body2' color='text.secondary'>
-              Aún no hay actividad registrada.
+              No hay actividad todavía.
             </Typography>
           </Box>
         ) : (
@@ -91,7 +104,7 @@ export const RecentActivityFeed = ({ activities }: RecentActivityFeedProps) => {
                     '&:hover': { backgroundColor: 'action.hover' }
                   }}
                 >
-                  <ActivityIcon type={activity.type} />
+                  <ActivityIcon action={activity.action} />
                   <Box sx={{ minWidth: 0, flex: 1 }}>
                     <Stack
                       direction='row'
@@ -107,7 +120,7 @@ export const RecentActivityFeed = ({ activities }: RecentActivityFeedProps) => {
                         color='text.secondary'
                         sx={{ flexShrink: 0, whiteSpace: 'nowrap' }}
                       >
-                        {formatRelative(activity.occurredAt)}
+                        {formatRelative(activity.createdAt)}
                       </Typography>
                     </Stack>
                     <Typography variant='body2' color='text.secondary' sx={{ mt: 0.5 }}>

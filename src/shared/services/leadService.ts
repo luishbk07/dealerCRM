@@ -20,6 +20,7 @@ import {
 } from '@/shared/repositories'
 import { vehicleRepository } from '@/shared/repositories/vehicleRepository'
 import { saleService } from '@/shared/services/saleService'
+import { activityService } from '@/shared/services/activityService'
 
 export interface CreateLeadFromPublicInput {
   vehicleId: string
@@ -73,11 +74,24 @@ export const leadService = {
   },
 
   create(input: CreateLeadInput): Promise<Lead> {
-    return wrapServiceCall(() => leadRepository.create(input), 'Failed to create lead')
+    return wrapServiceCall(async () => {
+      const lead = await leadRepository.create(input)
+      await activityService.logLeadCreated(lead)
+      return lead
+    }, 'Failed to create lead')
   },
 
   update(leadId: string, input: UpdateLeadInput): Promise<Lead> {
-    return wrapServiceCall(() => leadRepository.update(leadId, input), 'Failed to update lead')
+    return wrapServiceCall(async () => {
+      const current = await leadRepository.getById(leadId)
+      const lead = await leadRepository.update(leadId, input)
+      if (input.status !== undefined && current && input.status !== current.status) {
+        await activityService.logLeadStatusChanged(lead, input.status)
+      } else {
+        await activityService.logLeadUpdated(lead)
+      }
+      return lead
+    }, 'Failed to update lead')
   },
 
   updateDetail(leadId: string, input: UpdateLeadInput, current: Lead): Promise<Lead> {
@@ -90,14 +104,22 @@ export const leadService = {
 
         const payload: UpdateLeadInput = { ...rest }
         if (Object.keys(payload).length === 0) return soldLead
-        return leadRepository.update(leadId, payload)
+        const updated = await leadRepository.update(leadId, payload)
+        await activityService.logLeadUpdated(updated)
+        return updated
       }
 
       const payload: UpdateLeadInput = { ...input }
       if (input.status !== undefined && input.status !== current.status) {
         payload.lastContactAt = nowIso()
       }
-      return leadRepository.update(leadId, payload)
+      const lead = await leadRepository.update(leadId, payload)
+      if (input.status !== undefined && input.status !== current.status) {
+        await activityService.logLeadStatusChanged(lead, input.status)
+      } else {
+        await activityService.logLeadUpdated(lead)
+      }
+      return lead
     }, 'Failed to update lead')
   },
 
@@ -112,7 +134,14 @@ export const leadService = {
         'Failed to convert lead to sale'
       )
     }
-    return wrapServiceCall(() => leadRepository.updateStatus(leadId, status), 'Failed to update lead status')
+    return wrapServiceCall(async () => {
+      const current = await leadRepository.getById(leadId)
+      const lead = await leadRepository.updateStatus(leadId, status)
+      if (current && current.status !== status) {
+        await activityService.logLeadStatusChanged(lead, status)
+      }
+      return lead
+    }, 'Failed to update lead status')
   },
 
   getByVehicle(vehicleId: string): Promise<Lead[]> {
@@ -134,7 +163,7 @@ export const leadService = {
   async createFromPublicForm(input: CreateLeadFromPublicInput): Promise<Lead> {
     return wrapServiceCall(async () => {
       const vehicle = await vehicleRepository.getById(input.vehicleId)
-      return leadRepository.create({
+      const lead = await leadRepository.create({
         dealerId: vehicle?.dealerId ?? null,
         vehicleId: input.vehicleId,
         name: input.name,
@@ -143,23 +172,25 @@ export const leadService = {
         source: input.source,
         status: LEAD_STATUS_NEW
       })
+      await activityService.logLeadCreated(lead)
+      return lead
     }, 'Failed to create lead from public form')
   },
 
   async createFromDashboard(input: CreateLeadFromDashboardInput): Promise<Lead> {
-    return wrapServiceCall(
-      () =>
-        leadRepository.create({
-          dealerId: input.dealerId,
-          vehicleId: input.vehicleId,
-          name: input.name,
-          phone: input.phone,
-          message: input.message,
-          source: input.source,
-          status: LEAD_STATUS_NEW
-        }),
-      'Failed to create lead from dashboard'
-    )
+    return wrapServiceCall(async () => {
+      const lead = await leadRepository.create({
+        dealerId: input.dealerId,
+        vehicleId: input.vehicleId,
+        name: input.name,
+        phone: input.phone,
+        message: input.message,
+        source: input.source,
+        status: LEAD_STATUS_NEW
+      })
+      await activityService.logLeadCreated(lead)
+      return lead
+    }, 'Failed to create lead from dashboard')
   },
 
   addNote(leadId: string, note: string): Promise<LeadNote> {

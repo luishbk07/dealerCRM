@@ -1,82 +1,61 @@
 import { useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { leadService } from '@/shared/services/leadService'
-import { salesService } from '@/features/sales/services/salesService'
+import { useLeads } from '@/features/leads/hooks/useLeads'
 import { vehicleService } from '@/features/vehicles/services/vehicleService'
 import { queryKeys } from '@/shared/queryKeys'
 import type { Vehicle } from '@/shared/types'
-import { buildActivityFeed } from '../utils/buildActivityFeed'
 import { useDashboardStats } from './useDashboardStats'
+import { useActivityLogs } from './useActivityLogs'
 
-const RECENT_LEADS_COUNT = 5
+const RECENT_LEADS_PARAMS = { page: 0, pageSize: 5 }
 const VEHICLE_LOOKUP_PARAMS = { page: 0, pageSize: 500 }
 
 export const useDashboardPage = () => {
   const snapshotQuery = useDashboardStats()
+  const activityQuery = useActivityLogs()
+  const recentLeadsQuery = useLeads(RECENT_LEADS_PARAMS)
 
-  const leadsQuery = useQuery({
-    queryKey: queryKeys.leads.allLeads,
-    queryFn: () => leadService.getAll(),
-    staleTime: 60_000
-  })
-
-  const salesQuery = useQuery({
-    queryKey: queryKeys.sales.allSales,
-    queryFn: () => salesService.getAll(),
-    staleTime: 60_000
-  })
+  const recentLeads = recentLeadsQuery.data?.items ?? []
+  const needsVehicleLookup = recentLeads.some((lead) => lead.vehicleId)
 
   const vehiclesQuery = useQuery({
     queryKey: queryKeys.vehicles.list(VEHICLE_LOOKUP_PARAMS),
     queryFn: () => vehicleService.listWithImages(VEHICLE_LOOKUP_PARAMS),
+    enabled: needsVehicleLookup,
     staleTime: 60_000
   })
 
-  const leads = leadsQuery.data ?? []
-  const sales = salesQuery.data ?? []
-  const vehicles = vehiclesQuery.data?.items ?? []
-
   const vehicleById = useMemo(() => {
     const map = new Map<string, Vehicle>()
-    for (const vehicle of vehicles) {
+    for (const vehicle of vehiclesQuery.data?.items ?? []) {
       map.set(vehicle.id, vehicle)
     }
     return map
-  }, [vehicles])
-
-  const recentLeads = useMemo(
-    () =>
-      [...leads]
-        .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-        .slice(0, RECENT_LEADS_COUNT),
-    [leads]
-  )
-
-  const activities = useMemo(
-    () => buildActivityFeed(vehicles, leads, sales),
-    [vehicles, leads, sales]
-  )
+  }, [vehiclesQuery.data?.items])
 
   const isLoading =
     snapshotQuery.isLoading ||
-    leadsQuery.isLoading ||
-    salesQuery.isLoading ||
-    vehiclesQuery.isLoading
+    activityQuery.isLoading ||
+    recentLeadsQuery.isLoading ||
+    (needsVehicleLookup && vehiclesQuery.isLoading)
 
   const isError =
     snapshotQuery.isError ||
-    leadsQuery.isError ||
-    salesQuery.isError ||
-    vehiclesQuery.isError
+    activityQuery.isError ||
+    recentLeadsQuery.isError ||
+    (needsVehicleLookup && vehiclesQuery.isError)
 
   const error =
-    snapshotQuery.error ?? leadsQuery.error ?? salesQuery.error ?? vehiclesQuery.error
+    snapshotQuery.error ??
+    activityQuery.error ??
+    recentLeadsQuery.error ??
+    vehiclesQuery.error
 
   return {
     snapshot: snapshotQuery.data,
     recentLeads,
     vehicleById,
-    activities,
+    activities: activityQuery.data ?? [],
     isLoading,
     isError,
     error

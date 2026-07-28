@@ -1,5 +1,6 @@
 import type { Dealer, UpdateDealerInput } from '@/shared/types'
 import { dealerRepository, STORAGE_BUCKETS, storageRepository } from '@/shared/repositories'
+import { activityService } from '@/shared/services/activityService'
 import { prepareImageForUpload } from '@/features/vehicles/services/storageService'
 import {
   buildDealerBannerStoragePath,
@@ -46,10 +47,11 @@ export const dealerSettingsService = {
       country: values.country.trim() || null,
       website: normalizedWebsite
     }
-    return wrapCall(
-      () => dealerRepository.update(dealerId, input),
-      'No fue posible guardar la configuración.'
-    )
+    return wrapCall(async () => {
+      const dealer = await dealerRepository.update(dealerId, input)
+      await activityService.logDealerUpdated(dealerId)
+      return dealer
+    }, 'No fue posible guardar la configuración.')
   },
 
   resolveLogoUrl(logoPath: string | null | undefined): string | null {
@@ -75,6 +77,7 @@ export const dealerSettingsService = {
       )
 
       const dealer = await dealerRepository.update(dealerId, { logoPath: storagePath })
+      await activityService.logLogoUpdated(dealerId)
 
       if (previousPath && previousPath !== storagePath) {
         try {
@@ -101,6 +104,7 @@ export const dealerSettingsService = {
       )
 
       const dealer = await dealerRepository.update(dealerId, { bannerPath: storagePath })
+      await activityService.logBannerUpdated(dealerId)
 
       if (previousPath && previousPath !== storagePath) {
         try {

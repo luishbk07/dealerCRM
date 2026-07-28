@@ -31,3 +31,5 @@ export type { CreateDealerPayload } from './dealerRepository'
 
 export { storageRepository, STORAGE_BUCKET, STORAGE_BUCKETS, type StorageBucket } from './storageRepository'
 export type { UploadedObject, UploadBytesOptions } from './storageRepository'
+
+export { activityRepository, ActivityRepository } from './activityRepository'

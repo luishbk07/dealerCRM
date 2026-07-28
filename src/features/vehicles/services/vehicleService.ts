@@ -9,6 +9,7 @@ import {
   type VehicleListParams,
   type VehicleListResult
 } from '@/shared/repositories'
+import { activityService } from '@/shared/services/activityService'
 import { storageService } from './storageService'
 
 export interface VehicleFormPayload {
@@ -118,7 +119,9 @@ export const vehicleService = {
     } as CreateVehicleRow
     const vehicle = await vehicleRepository.create(insertPayload)
     const uploadedImages = await vehicleService.uploadImages(dealerId, vehicle.id, images, 0)
-    return attachImages(vehicle, uploadedImages)
+    const result = attachImages(vehicle, uploadedImages)
+    await activityService.logVehicleCreated(dealerId, vehicle)
+    return result
   },
 
   async update(
@@ -132,13 +135,19 @@ export const vehicleService = {
     const startOrder = existing.length
     const uploaded = await vehicleService.uploadImages(dealerId, id, newImages, startOrder)
     const combined = [...existing, ...uploaded]
-    return attachImages(updated, combined)
+    const result = attachImages(updated, combined)
+    await activityService.logVehicleUpdated(dealerId, updated)
+    return result
   },
 
   async remove(id: string): Promise<void> {
+    const vehicle = await vehicleRepository.getById(id)
     const images = await vehicleImageRepository.listByVehicleId(id)
     const paths = images.map((image) => image.storagePath).filter((path): path is string => Boolean(path))
     await vehicleRepository.remove(id)
+    if (vehicle?.dealerId) {
+      await activityService.logVehicleDeleted(vehicle.dealerId, vehicle)
+    }
     if (paths.length > 0) {
       try {
         await storageRepository.remove(paths, STORAGE_BUCKETS.vehicleImages)

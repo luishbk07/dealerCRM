@@ -10,6 +10,7 @@ import type { Sale } from '@/shared/types'
 import { VEHICLE_STATUS_SOLD } from '@/shared/types/vehicle'
 import { leadRepository, salesRepository, type SaleListParams, type SaleListResult } from '@/shared/repositories'
 import { vehicleRepository } from '@/shared/repositories/vehicleRepository'
+import { activityService } from '@/shared/services/activityService'
 
 const VALIDATION_MESSAGES = {
   leadNotFound: 'No se encontró el lead.',
@@ -122,7 +123,14 @@ export const saleService = {
   },
 
   create(input: CreateSaleInput): Promise<Sale> {
-    return wrapServiceCall(() => salesRepository.create(input), 'No fue posible registrar la venta.')
+    return wrapServiceCall(async () => {
+      const sale = await salesRepository.create(input)
+      const vehicle = sale.vehicleId ? await vehicleRepository.getById(sale.vehicleId) : null
+      if (vehicle && sale.dealerId) {
+        await activityService.logSaleCreated(sale.dealerId, sale.id, vehicle, sale.price)
+      }
+      return sale
+    }, 'No fue posible registrar la venta.')
   },
 
   async convertLeadToSale(leadId: string): Promise<{ lead: Lead, result: ConvertLeadToSaleResult }> {
@@ -154,6 +162,8 @@ export const saleService = {
         vehicleUpdated = true
 
         const updatedLead = await leadRepository.updateStatus(leadId, LEAD_STATUS_SOLD)
+
+        await activityService.logSaleCreated(dealerId, sale.id, vehicle, sale.price)
 
         return {
           lead: updatedLead,
