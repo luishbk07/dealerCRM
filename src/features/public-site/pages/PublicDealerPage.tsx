@@ -137,7 +137,7 @@ export const PublicDealerPage = () => {
                     fuelType={vehicle.fuelType}
                     status={vehicle.status}
                     imageUrl={vehicle.primaryImageUrl}
-                    onViewDetails={() => navigate(paths.vehiclePublic(vehicle.id))}
+                    onViewDetails={() => navigate(paths.dealerPublicVehicle(dealerSlug!, vehicle.id))}
                   />
                 </Grid>
               ))}

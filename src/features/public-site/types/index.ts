@@ -38,4 +38,38 @@ export const INITIAL_PUBLIC_VEHICLE_FILTERS: PublicVehicleFiltersState = {
   sort: 'newest'
 }
 
+export interface PublicVehicleDetail {
+  id: string
+  brand: string
+  model: string
+  year: number | null
+  price: number | null
+  mileage: number | null
+  transmission: string | null
+  fuelType: string | null
+  description: string | null
+  imageUrls: string[]
+  primaryImageUrl: string | null
+}
+
+export interface PublicVehiclePageContext {
+  dealerSlug: string
+  profile: PublicDealerProfile
+  vehicle: PublicVehicleDetail
+}
+
+export interface PublicRelatedVehicle {
+  id: string
+  brand: string
+  model: string
+  year: number | null
+  price: number | null
+  mileage: number | null
+  transmission: string | null
+  fuelType: string | null
+  imageUrl: string | null
+}
+
 export const PUBLIC_VEHICLE_PAGE_SIZE = 12
+export const PUBLIC_RELATED_VEHICLES_LIMIT = 4
+export const PUBLIC_RELATED_VEHICLES_FETCH_SIZE = 8

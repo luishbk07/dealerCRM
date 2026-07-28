@@ -34,6 +34,10 @@ export const queryKeys = {
   publicSite: {
     dealer: (slug: string) => ['public-site', 'dealer', slug] as const,
     vehicles: (dealerId: string, params: VehicleListParams) =>
-      ['public-site', 'vehicles', dealerId, params] as const
+      ['public-site', 'vehicles', dealerId, params] as const,
+    vehicle: (slug: string, vehicleId: string) =>
+      ['public-site', 'vehicle', slug, vehicleId] as const,
+    relatedVehicles: (slug: string, vehicleId: string) =>
+      ['public-site', 'related-vehicles', slug, vehicleId] as const
   }
 }
