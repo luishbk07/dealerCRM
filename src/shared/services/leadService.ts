@@ -172,7 +172,7 @@ export const leadService = {
         source: input.source,
         status: LEAD_STATUS_NEW
       })
-      await activityService.logLeadCreated(lead)
+      await activityService.logLeadCreatedFromWebsite(lead)
       return lead
     }, 'Failed to create lead from public form')
   },

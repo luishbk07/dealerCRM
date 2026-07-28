@@ -46,12 +46,11 @@ export const PublicVehicleDetailSidebar = ({
   }
 
   return (
-    <Card sx={{ position: { md: 'sticky' }, top: { md: 24 } }}>
+    <Card>
       <CardContent>
         <Stack spacing={1.5}>
-          <Typography variant='h6'>¿Te interesa este vehículo?</Typography>
-          <Typography variant='body2' color='text.secondary'>
-            Contáctanos directamente para más información o para coordinar una visita.
+          <Typography variant='subtitle1' sx={{ fontWeight: 600 }}>
+            Contacto directo
           </Typography>
 
           {whatsappLink ? (

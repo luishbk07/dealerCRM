@@ -73,3 +73,5 @@ export interface PublicRelatedVehicle {
 export const PUBLIC_VEHICLE_PAGE_SIZE = 12
 export const PUBLIC_RELATED_VEHICLES_LIMIT = 4
 export const PUBLIC_RELATED_VEHICLES_FETCH_SIZE = 8
+
+export type { PublicLeadInquiryInput } from './publicLeadInquiry'

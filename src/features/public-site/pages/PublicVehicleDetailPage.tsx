@@ -10,6 +10,7 @@ import { LoadingState } from '@/shared/components'
 import { formatCurrency, formatNumber } from '@/shared/utils/format'
 import { PublicSiteHeader } from '../components/PublicSiteHeader'
 import { PublicVehicleGallery } from '../components/PublicVehicleGallery'
+import { PublicVehicleContactForm } from '../components/PublicVehicleContactForm'
 import { PublicVehicleDetailSidebar } from '../components/PublicVehicleDetailSidebar'
 import { PublicRelatedVehicles } from '../components/PublicRelatedVehicles'
 import { PublicDealerFooter } from '../components/PublicDealerFooter'
@@ -156,6 +157,13 @@ export const PublicVehicleDetailPage = () => {
                 </Grid>
               </CardContent>
             </Card>
+
+            <Box sx={{ mb: 3 }}>
+              <PublicVehicleContactForm
+                dealerSlug={pageContext.dealerSlug}
+                vehicleId={vehicle.id}
+              />
+            </Box>
 
             <PublicVehicleDetailSidebar dealer={profile} vehicle={vehicle} shareUrl={shareUrl} />
           </Grid>

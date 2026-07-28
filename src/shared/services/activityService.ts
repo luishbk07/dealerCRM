@@ -86,6 +86,18 @@ export const activityService = {
     })
   },
 
+  logLeadCreatedFromWebsite(lead: Lead): Promise<void> {
+    if (!lead.dealerId) return Promise.resolve()
+    return safeLog({
+      dealerId: lead.dealerId,
+      entityType: 'lead',
+      entityId: lead.id,
+      action: 'lead_created',
+      title: 'Nuevo lead recibido desde el sitio web',
+      description: `${leadName(lead)} consultó por un vehículo`
+    })
+  },
+
   logLeadUpdated(lead: Lead): Promise<void> {
     if (!lead.dealerId) return Promise.resolve()
     return safeLog({

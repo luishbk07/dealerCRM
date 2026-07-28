@@ -14,6 +14,9 @@ import {
   PUBLIC_RELATED_VEHICLES_FETCH_SIZE,
   PUBLIC_RELATED_VEHICLES_LIMIT
 } from '../types'
+import { leadService } from '@/shared/services/leadService'
+import type { PublicLeadInquiryInput } from '../types'
+import { buildPublicLeadMessage } from '../utils/publicLeadInquiryValidation'
 import { toPublicRelatedVehicle, toPublicVehicleDetail } from '../utils/publicVehicleUtils'
 
 const toPublicProfile = (dealer: Dealer): PublicDealerProfile => ({
@@ -88,5 +91,20 @@ export const publicDealerService = {
       .filter((item) => item.id !== vehicleId)
       .slice(0, PUBLIC_RELATED_VEHICLES_LIMIT)
       .map(toPublicRelatedVehicle)
+  },
+
+  async submitVehicleInquiry(input: PublicLeadInquiryInput): Promise<void> {
+    const context = await publicDealerService.getPublicVehicle(input.dealerSlug, input.vehicleId)
+    if (!context) {
+      throw new Error('No fue posible enviar tu consulta.')
+    }
+
+    await leadService.createFromPublicForm({
+      vehicleId: input.vehicleId,
+      name: input.name.trim(),
+      phone: input.phone.trim(),
+      message: buildPublicLeadMessage(input.message, input.email),
+      source: 'website'
+    })
   }
 }
