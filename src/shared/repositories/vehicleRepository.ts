@@ -8,16 +8,22 @@ const VEHICLE_COLUMNS = `
   interior_color, drivetrain, engine, sale_price, featured, created_at, updated_at
 `
 
+export type VehicleListSort = 'newest' | 'price_asc' | 'price_desc'
+
 export interface VehicleListParams {
   page: number
   pageSize: number
+  dealerId?: string | null
   status?: string | null
   brand?: string | null
   yearMin?: number | null
   yearMax?: number | null
   priceMin?: number | null
   priceMax?: number | null
+  transmission?: string | null
+  fuelType?: string | null
   search?: string | null
+  sort?: VehicleListSort | null
 }
 
 export interface VehicleListResult {
@@ -57,21 +63,36 @@ export const vehicleRepository = {
     const from = params.page * params.pageSize
     const to = from + params.pageSize - 1
 
-    let query = supabase
-      .from('vehicles')
-      .select(VEHICLE_COLUMNS, { count: 'exact' })
-      .order('created_at', { ascending: false })
-      .range(from, to)
+    let query = supabase.from('vehicles').select(VEHICLE_COLUMNS, { count: 'exact' })
 
+    const sort = params.sort ?? 'newest'
+    if (sort === 'price_asc') {
+      query = query.order('price', { ascending: true, nullsFirst: false })
+    } else if (sort === 'price_desc') {
+      query = query.order('price', { ascending: false, nullsFirst: false })
+    } else {
+      query = query.order('created_at', { ascending: false })
+    }
+
+    query = query.range(from, to)
+
+    if (params.dealerId) query = query.eq('dealer_id', params.dealerId)
     if (params.status) query = query.eq('status', params.status)
     if (params.brand) query = query.ilike('brand', `%${params.brand}%`)
     if (params.yearMin !== null && params.yearMin !== undefined) query = query.gte('year', params.yearMin)
     if (params.yearMax !== null && params.yearMax !== undefined) query = query.lte('year', params.yearMax)
     if (params.priceMin !== null && params.priceMin !== undefined) query = query.gte('price', params.priceMin)
     if (params.priceMax !== null && params.priceMax !== undefined) query = query.lte('price', params.priceMax)
+    if (params.transmission) query = query.ilike('transmission', `%${params.transmission}%`)
+    if (params.fuelType) query = query.ilike('fuel_type', `%${params.fuelType}%`)
     if (params.search) {
-      const term = `%${params.search}%`
-      query = query.or(`brand.ilike.${term},model.ilike.${term},vin.ilike.${term},stock_number.ilike.${term}`)
+      const term = params.search.trim()
+      const pattern = `%${term}%`
+      const orFilters = [`brand.ilike.${pattern}`, `model.ilike.${pattern}`, `vin.ilike.${pattern}`, `stock_number.ilike.${pattern}`]
+      if (/^\d{4}$/.test(term)) {
+        orFilters.push(`year.eq.${term}`)
+      }
+      query = query.or(orFilters.join(','))
     }
 
     const { data, error, count } = await query.returns<VehicleRow[]>()

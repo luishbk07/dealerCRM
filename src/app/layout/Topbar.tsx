@@ -1,6 +1,7 @@
 import { AppBar, Avatar, Box, IconButton, Menu, MenuItem, Stack, Toolbar, Typography, Divider } from '@mui/material'
 import MenuIcon from '@mui/icons-material/Menu'
 import LogoutIcon from '@mui/icons-material/Logout'
+import OpenInNewIcon from '@mui/icons-material/OpenInNew'
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import type { User } from '@/shared/types'
@@ -16,8 +17,16 @@ interface TopbarProps {
 
 export const Topbar = ({ user, logoUrl, onToggleMobile }: TopbarProps) => {
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null)
-  const { signOut } = useAuth()
+  const { signOut, dealer } = useAuth()
   const navigate = useNavigate()
+  const publicSiteUrl = dealer?.slug ? paths.dealerPublic(dealer.slug) : null
+
+  const handleOpenPublicSite = () => {
+    setAnchorEl(null)
+    if (publicSiteUrl) {
+      window.open(publicSiteUrl, '_blank', 'noopener,noreferrer')
+    }
+  }
 
   const handleSignOut = async () => {
     setAnchorEl(null)
@@ -89,6 +98,10 @@ export const Topbar = ({ user, logoUrl, onToggleMobile }: TopbarProps) => {
               </Typography>
             </Box>
             <Divider />
+            <MenuItem onClick={handleOpenPublicSite} disabled={!publicSiteUrl}>
+              <OpenInNewIcon fontSize='small' style={{ marginRight: 8 }} />
+              Ver sitio público
+            </MenuItem>
             <MenuItem onClick={handleSignOut}>
               <LogoutIcon fontSize='small' style={{ marginRight: 8 }} />
               Cerrar sesión

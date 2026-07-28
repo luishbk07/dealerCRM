@@ -2,6 +2,7 @@ export { vehicleRepository } from './vehicleRepository'
 export type {
   VehicleListParams,
   VehicleListResult,
+  VehicleListSort,
   CreateVehicleRow,
   UpdateVehicleRow
 } from './vehicleRepository'

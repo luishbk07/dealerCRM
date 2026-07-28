@@ -90,6 +90,17 @@ export class DealerRepository {
     return data ? mapRow(data) : null
   }
 
+  async getBySlug(slug: string): Promise<Dealer | null> {
+    const { data, error } = await supabase
+      .from('dealers')
+      .select(DEALER_COLUMNS)
+      .eq('slug', slug)
+      .eq('is_active', true)
+      .maybeSingle<DealerRow>()
+    if (error) throw new Error(error.message)
+    return data ? mapRow(data) : null
+  }
+
   async create(payload: CreateDealerPayload): Promise<Dealer> {
     const { data, error } = await supabase
       .from('dealers')

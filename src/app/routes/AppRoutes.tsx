@@ -10,6 +10,7 @@ import { VehiclesListPage, VehicleCreatePage, VehicleEditPage, PublicVehiclePage
 import { LeadsListPage, LeadDetailPage } from '@/features/leads'
 import { SalesListPage, SaleDetailPage } from '@/features/sales'
 import { DealerSettingsPage } from '@/features/settings'
+import { PublicDealerPage } from '@/features/public-site'
 
 export const AppRoutes = () => {
   return (
@@ -17,6 +18,7 @@ export const AppRoutes = () => {
       <Route path={paths.login} element={<LoginPage />} />
       <Route path={paths.register} element={<RegisterPage />} />
       <Route path={paths.vehiclePublic()} element={<PublicVehiclePage />} />
+      <Route path={paths.dealerPublic()} element={<PublicDealerPage />} />
 
       <Route element={<AuthGuard />}>
         <Route path={paths.onboarding} element={<DealerOnboardingPage />} />

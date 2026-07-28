@@ -7,6 +7,7 @@ export const paths = {
   vehicleNew: '/vehicles/new',
   vehicleEdit: (id: string = ':id') => `/vehicles/${id}/edit`,
   vehiclePublic: (id: string = ':id') => `/vehicles/${id}/public`,
+  dealerPublic: (slug: string = ':dealerSlug') => `/d/${slug}`,
   leads: '/leads',
   leadDetail: (id: string = ':id') => `/leads/${id}`,
   sales: '/sales',
