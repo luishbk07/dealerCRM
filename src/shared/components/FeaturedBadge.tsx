@@ -1,6 +1,6 @@
 import { Chip, type ChipProps } from '@mui/material'
 
-interface FeaturedBadgeProps extends Omit<ChipProps, 'label'> {}
+type FeaturedBadgeProps = Omit<ChipProps, 'label'>
 
 export const FeaturedBadge = ({ size = 'small', sx, ...rest }: FeaturedBadgeProps) => (
   <Chip

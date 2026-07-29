@@ -12,5 +12,19 @@ export default defineConfig({
   server: {
     port: 5173,
     open: true
+  },
+  build: {
+    sourcemap: false,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: ['react', 'react-dom', 'react-router-dom'],
+          mui: ['@mui/material', '@mui/icons-material', '@emotion/react', '@emotion/styled'],
+          supabase: ['@supabase/supabase-js'],
+          query: ['@tanstack/react-query']
+        }
+      }
+    },
+    chunkSizeWarningLimit: 600
   }
 })

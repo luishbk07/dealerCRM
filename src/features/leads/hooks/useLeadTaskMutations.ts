@@ -23,7 +23,7 @@ const patchLeadDetailTasks = (
   })
 }
 
-interface CreateTaskVariables extends CreateLeadTaskInput {}
+type CreateTaskVariables = CreateLeadTaskInput
 
 interface CompleteTaskVariables {
   leadId: string

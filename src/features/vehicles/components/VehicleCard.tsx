@@ -41,6 +41,7 @@ export const VehicleCard = ({ vehicle, onClick, onShare }: VehicleCardProps) => 
             component='img'
             image={heroImage}
             alt={`${vehicle.brand} ${vehicle.model}`}
+            loading='lazy'
             sx={{ aspectRatio: '16 / 10', objectFit: 'cover' }}
           />
           <Box sx={{ position: 'absolute', top: 12, left: 12, display: 'flex', flexDirection: 'column', gap: 0.75, alignItems: 'flex-start' }}>

@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
-import type { Session, User as SupabaseUser } from '@supabase/supabase-js'
+import type { AuthChangeEvent, Session, User as SupabaseUser } from '@supabase/supabase-js'
+import { queryClient } from '@/app/queryClient'
 import { supabase, isSupabaseConfigured } from '@/shared/services/supabase'
 import type { Dealer, Profile, User, UserRole } from '@/shared/types'
 import { authService, mapSupabaseUserToUser } from '../services/authService'
@@ -21,6 +22,17 @@ interface AuthContextValue {
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null)
+
+const clearSessionState = (
+  setSupabaseUser: (user: SupabaseUser | null) => void,
+  setProfile: (profile: Profile | null) => void,
+  setDealer: (dealer: Dealer | null) => void
+) => {
+  setSupabaseUser(null)
+  setProfile(null)
+  setDealer(null)
+  queryClient.clear()
+}
 
 const SUPABASE_CONFIG_MESSAGE = 'Configura Supabase: copia .env.example a .env y agrega VITE_SUPABASE_URL y VITE_SUPABASE_ANON_KEY.'
 
@@ -93,8 +105,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     void initialize()
 
-    const { data: listener } = supabase.auth.onAuthStateChange((_event, session: Session | null) => {
+    const { data: listener } = supabase.auth.onAuthStateChange((event: AuthChangeEvent, session: Session | null) => {
+      if (event === 'SIGNED_OUT') {
+        clearSessionState(setSupabaseUser, setProfile, setDealer)
+        return
+      }
       const sessionUser = session?.user ?? null
+      if (!sessionUser) {
+        setSupabaseUser(null)
+        setProfile(null)
+        setDealer(null)
+        return
+      }
       setSupabaseUser(sessionUser)
       void loadAccountContext(sessionUser)
     })
@@ -129,9 +151,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const signOut = useCallback(async () => {
     await authService.signOut()
-    setSupabaseUser(null)
-    setProfile(null)
-    setDealer(null)
+    clearSessionState(setSupabaseUser, setProfile, setDealer)
   }, [])
 
   const refreshDealer = useCallback(async () => {

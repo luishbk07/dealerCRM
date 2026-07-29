@@ -65,14 +65,15 @@ export const LeadsListPage = () => {
     search: null
   })
 
-  const vehicles = vehiclesQuery.data?.items ?? []
   const vehiclesById = useMemo(() => {
     const map = new Map<string, Vehicle>()
-    for (const vehicle of vehicles) {
+    for (const vehicle of vehiclesQuery.data?.items ?? []) {
       map.set(vehicle.id, vehicle)
     }
     return map
-  }, [vehicles])
+  }, [vehiclesQuery.data?.items])
+
+  const vehicles = vehiclesQuery.data?.items ?? []
 
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE))
 

@@ -5,5 +5,5 @@ export const usePublicPageMeta = (options: PublicPageMetaOptions | null) => {
   useEffect(() => {
     if (!options) return undefined
     return applyPublicPageMeta(options)
-  }, [options?.title, options?.description, options?.imageUrl, options?.url])
+  }, [options])
 }

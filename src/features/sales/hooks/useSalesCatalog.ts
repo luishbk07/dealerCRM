@@ -25,20 +25,24 @@ export const useSalesCatalog = () => {
     queryFn: () => leadService.getAll()
   })
 
-  const vehicles = vehiclesQuery.data?.items ?? []
-  const leads = leadsQuery.data ?? []
-
   const vehiclesById = useMemo(() => {
     const map = new Map<string, Vehicle>()
-    for (const vehicle of vehicles) map.set(vehicle.id, vehicle)
+    for (const vehicle of vehiclesQuery.data?.items ?? []) {
+      map.set(vehicle.id, vehicle)
+    }
     return map
-  }, [vehicles])
+  }, [vehiclesQuery.data?.items])
 
   const leadsById = useMemo(() => {
     const map = new Map<string, Lead>()
-    for (const lead of leads) map.set(lead.id, lead)
+    for (const lead of leadsQuery.data ?? []) {
+      map.set(lead.id, lead)
+    }
     return map
-  }, [leads])
+  }, [leadsQuery.data])
+
+  const vehicles = vehiclesQuery.data?.items ?? []
+  const leads = leadsQuery.data ?? []
 
   return {
     vehicles,
