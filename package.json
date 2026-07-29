@@ -9,6 +9,8 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
+    "build:pages": "tsc -b && vite build --mode pages",
+    "preview:pages": "npm run build:pages && vite preview",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
