@@ -5,12 +5,14 @@ import SpeedOutlinedIcon from '@mui/icons-material/SpeedOutlined'
 import type { VehicleWithImages } from '@/shared/types'
 import { StatusChip } from '@/shared/components'
 import { formatCurrency, formatNumber } from '@/shared/utils/format'
+import { VehicleActionsMenu } from './VehicleActionsMenu'
 
 const PLACEHOLDER_IMAGE = 'https://placehold.co/600x400/E2E8F0/64748B?text=Sin+imagen'
 
 interface VehicleCardProps {
   vehicle: VehicleWithImages
   onClick?: () => void
+  onShare?: (vehicle: VehicleWithImages) => void
 }
 
 interface VehicleSpecProps {
@@ -27,7 +29,7 @@ const VehicleSpec = ({ icon, text }: VehicleSpecProps) => {
   )
 }
 
-export const VehicleCard = ({ vehicle, onClick }: VehicleCardProps) => {
+export const VehicleCard = ({ vehicle, onClick, onShare }: VehicleCardProps) => {
   const heroImage = vehicle.primaryImageUrl ?? PLACEHOLDER_IMAGE
   const additionalCount = Math.max(vehicle.images.length - 1, 0)
 
@@ -56,6 +58,11 @@ export const VehicleCard = ({ vehicle, onClick }: VehicleCardProps) => {
                 color: 'white'
               }}
             />
+          ) : null}
+          {onShare ? (
+            <Box sx={{ position: 'absolute', top: 12, right: 12 }}>
+              <VehicleActionsMenu vehicle={vehicle} onShare={onShare} />
+            </Box>
           ) : null}
         </Box>
         <CardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>

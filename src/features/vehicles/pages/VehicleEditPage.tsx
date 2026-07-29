@@ -3,8 +3,10 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 import AutoAwesomeOutlinedIcon from '@mui/icons-material/AutoAwesomeOutlined'
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline'
 import OpenInNewOutlinedIcon from '@mui/icons-material/OpenInNew'
+import ShareOutlinedIcon from '@mui/icons-material/ShareOutlined'
 import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
+import { useAuth } from '@/features/auth/context/AuthContext'
 import { ConfirmDialog, LoadingState, PageHeader } from '@/shared/components'
 import { useToast } from '@/shared/hooks/useToast'
 import { paths } from '@/app/routes/paths'
@@ -13,16 +15,19 @@ import { useVehicle } from '../hooks/useVehicle'
 import { useVehicleMutations } from '../hooks/useVehicleMutations'
 import { VehicleForm } from '../components/VehicleForm'
 import { AdGeneratorDialog } from '../components/AdGeneratorDialog'
+import { ShareVehicleDialog } from '../components/ShareVehicleDialog'
 import type { VehicleFormPayload, VehicleImageUpload } from '../services/vehicleService'
 
 export const VehicleEditPage = () => {
   const { id = '' } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const { showToast } = useToast()
+  const { dealer } = useAuth()
   const vehicleQuery = useVehicle(id)
   const { update, remove, deleteImage, setPrimary } = useVehicleMutations()
 
   const [adOpen, setAdOpen] = useState(false)
+  const [shareOpen, setShareOpen] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
 
   const handleSubmit = async (payload: VehicleFormPayload, images: VehicleImageUpload[]) => {
@@ -88,6 +93,13 @@ export const VehicleEditPage = () => {
           <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1}>
             <Button
               variant='outlined'
+              startIcon={<ShareOutlinedIcon />}
+              onClick={() => setShareOpen(true)}
+            >
+              Compartir
+            </Button>
+            <Button
+              variant='outlined'
               startIcon={<OpenInNewOutlinedIcon />}
               onClick={() => window.open(paths.vehiclePublic(vehicle.id), '_blank', 'noopener')}
             >
@@ -122,6 +134,12 @@ export const VehicleEditPage = () => {
       />
 
       <AdGeneratorDialog vehicle={vehicle} open={adOpen} onClose={() => setAdOpen(false)} />
+      <ShareVehicleDialog
+        vehicle={vehicle}
+        dealerSlug={dealer?.slug}
+        open={shareOpen}
+        onClose={() => setShareOpen(false)}
+      />
 
       <ConfirmDialog
         open={confirmDelete}

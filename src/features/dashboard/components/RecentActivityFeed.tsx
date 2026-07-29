@@ -1,3 +1,4 @@
+import ShareOutlinedIcon from '@mui/icons-material/ShareOutlined'
 import DirectionsCarFilledOutlinedIcon from '@mui/icons-material/DirectionsCarFilledOutlined'
 import PersonOutlineIcon from '@mui/icons-material/PersonOutline'
 import PaidOutlinedIcon from '@mui/icons-material/PaidOutlined'
@@ -26,6 +27,7 @@ const ACTIVITY_ICONS: Record<ActivityAction, ReactNode> = {
   vehicle_created: <DirectionsCarFilledOutlinedIcon fontSize='small' />,
   vehicle_updated: <EditOutlinedIcon fontSize='small' />,
   vehicle_deleted: <DeleteOutlineIcon fontSize='small' />,
+  vehicle_shared: <ShareOutlinedIcon fontSize='small' />,
   lead_created: <PersonOutlineIcon fontSize='small' />,
   lead_updated: <TrendingUpOutlinedIcon fontSize='small' />,
   lead_status_changed: <TrendingUpOutlinedIcon fontSize='small' />,
@@ -39,6 +41,7 @@ const ACTIVITY_COLORS: Record<ActivityAction, string> = {
   vehicle_created: '#2563EB',
   vehicle_updated: '#0EA5E9',
   vehicle_deleted: '#EF4444',
+  vehicle_shared: '#6366F1',
   lead_created: '#0EA5E9',
   lead_updated: '#8B5CF6',
   lead_status_changed: '#8B5CF6',

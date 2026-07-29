@@ -4,11 +4,14 @@ import AddIcon from '@mui/icons-material/Add'
 import DirectionsCarFilledOutlinedIcon from '@mui/icons-material/DirectionsCarFilledOutlined'
 import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useAuth } from '@/features/auth/context/AuthContext'
 import { EmptyState, LoadingState, PageHeader } from '@/shared/components'
 import { paths } from '@/app/routes/paths'
+import type { VehicleWithImages } from '@/shared/types'
 import { useVehicles } from '../hooks/useVehicles'
 import { VehicleCard } from '../components/VehicleCard'
 import { VehicleFilters, type VehicleFiltersState } from '../components/VehicleFilters'
+import { ShareVehicleDialog } from '../components/ShareVehicleDialog'
 
 const PAGE_SIZE = 12
 
@@ -33,8 +36,10 @@ const toNumberOrNull = (value: string): number | null => {
 
 export const VehiclesListPage = () => {
   const navigate = useNavigate()
+  const { dealer } = useAuth()
   const [filters, setFilters] = useState<VehicleFiltersState>(INITIAL_FILTERS)
   const [page, setPage] = useState(0)
+  const [shareVehicle, setShareVehicle] = useState<VehicleWithImages | null>(null)
 
   const queryParams = useMemo(() => ({
     page,
@@ -98,7 +103,11 @@ export const VehiclesListPage = () => {
           <Grid container spacing={2.5}>
             {items.map((vehicle) => (
               <Grid key={vehicle.id} size={{ xs: 12, sm: 6, md: 4, lg: 3 }}>
-                <VehicleCard vehicle={vehicle} onClick={() => navigate(paths.vehicleEdit(vehicle.id))} />
+                <VehicleCard
+                  vehicle={vehicle}
+                  onClick={() => navigate(paths.vehicleEdit(vehicle.id))}
+                  onShare={setShareVehicle}
+                />
               </Grid>
             ))}
           </Grid>
@@ -114,6 +123,12 @@ export const VehiclesListPage = () => {
           ) : null}
         </Stack>
       )}
+      <ShareVehicleDialog
+        vehicle={shareVehicle}
+        dealerSlug={dealer?.slug}
+        open={shareVehicle !== null}
+        onClose={() => setShareVehicle(null)}
+      />
     </Box>
   )
 }

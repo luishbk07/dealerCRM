@@ -74,6 +74,21 @@ export const activityService = {
     })
   },
 
+  logVehicleShared(
+    dealerId: string,
+    vehicle: Vehicle,
+    channelLabel: string
+  ): Promise<void> {
+    return safeLog({
+      dealerId,
+      entityType: 'vehicle',
+      entityId: vehicle.id,
+      action: 'vehicle_shared',
+      title: 'Vehículo compartido',
+      description: `${vehicleLabel(vehicle)} compartido por ${channelLabel}`
+    })
+  },
+
   logLeadCreated(lead: Lead): Promise<void> {
     if (!lead.dealerId) return Promise.resolve()
     return safeLog({
