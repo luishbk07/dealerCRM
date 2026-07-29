@@ -8,6 +8,7 @@ import type {
 } from '@/shared/types/activityLog'
 import { ACTIVITY_LOG_LIMIT } from '@/shared/types/activityLog'
 import type { Lead, Vehicle } from '@/shared/types'
+import type { LeadTask } from '@/modules/leads/types'
 import { formatCurrency } from '@/shared/utils/format'
 
 const vehicleLabel = (vehicle: Pick<Vehicle, 'brand' | 'model' | 'year'>): string => {
@@ -156,6 +157,39 @@ export const activityService = {
       action: 'lead_status_changed',
       title: 'Lead actualizado',
       description: `${leadName(lead)} cambió a ${LEAD_STATUS_LABELS[status]}`
+    })
+  },
+
+  logLeadTaskCreated(dealerId: string, task: LeadTask, lead: Lead): Promise<void> {
+    return safeLog({
+      dealerId,
+      entityType: 'lead',
+      entityId: task.leadId,
+      action: 'lead_task_created',
+      title: 'Seguimiento creado',
+      description: `${leadName(lead)} · ${task.title}`
+    })
+  },
+
+  logLeadTaskCompleted(dealerId: string, task: LeadTask, lead: Lead): Promise<void> {
+    return safeLog({
+      dealerId,
+      entityType: 'lead',
+      entityId: task.leadId,
+      action: 'lead_task_completed',
+      title: 'Seguimiento completado',
+      description: `${leadName(lead)} · ${task.title}`
+    })
+  },
+
+  logLeadTaskDeleted(dealerId: string, task: LeadTask, lead: Lead): Promise<void> {
+    return safeLog({
+      dealerId,
+      entityType: 'lead',
+      entityId: task.leadId,
+      action: 'lead_task_deleted',
+      title: 'Seguimiento eliminado',
+      description: `${leadName(lead)} · ${task.title}`
     })
   },
 

@@ -1,4 +1,4 @@
-import type { Lead, LeadMessage, LeadNote, Sale, Vehicle, VehicleImage } from '@/shared/types'
+import type { Lead, LeadMessage, LeadNote, LeadTask, PendingLeadTask, Sale, Vehicle, VehicleImage } from '@/shared/types'
 import { LEAD_STATUS_NEW, isLeadStatus } from '@/modules/leads/constants/leadStatus'
 
 export interface VehicleRow {
@@ -64,6 +64,22 @@ export interface LeadMessageRow {
   sender: string | null
   message: string | null
   created_at: string
+}
+
+export interface LeadTaskRow {
+  id: string
+  dealer_id: string
+  lead_id: string
+  title: string
+  notes: string | null
+  due_at: string
+  completed: boolean
+  completed_at: string | null
+  created_at: string
+}
+
+export interface LeadTaskWithLeadRow extends LeadTaskRow {
+  leads: { name: string | null } | { name: string | null }[] | null
 }
 
 export interface SaleRow {
@@ -144,6 +160,29 @@ export const mapLeadMessageRow = (row: LeadMessageRow): LeadMessage => ({
   sender: row.sender,
   message: row.message,
   createdAt: row.created_at
+})
+
+export const mapLeadTaskRow = (row: LeadTaskRow): LeadTask => ({
+  id: row.id,
+  dealerId: row.dealer_id,
+  leadId: row.lead_id,
+  title: row.title,
+  notes: row.notes,
+  dueAt: row.due_at,
+  completed: Boolean(row.completed),
+  completedAt: row.completed_at,
+  createdAt: row.created_at
+})
+
+const resolveLeadName = (leads: LeadTaskWithLeadRow['leads']): string | null => {
+  if (!leads) return null
+  if (Array.isArray(leads)) return leads[0]?.name ?? null
+  return leads.name
+}
+
+export const mapPendingLeadTaskRow = (row: LeadTaskWithLeadRow): PendingLeadTask => ({
+  ...mapLeadTaskRow(row),
+  leadName: resolveLeadName(row.leads)
 })
 
 export const mapSaleRow = (row: SaleRow): Sale => ({

@@ -9,7 +9,7 @@ import { LEAD_SENDER_DEALER } from '@/shared/types'
 import { ConfirmDialog, EmptyState, LoadingState, PageHeader } from '@/shared/components'
 import { useToast } from '@/shared/hooks/useToast'
 import { LEAD_STATUS_SOLD } from '@/modules/leads/constants/leadStatus'
-import type { LeadStatus } from '@/modules/leads/types'
+import type { LeadStatus, LeadTask } from '@/modules/leads/types'
 import { getSaleUserMessage } from '@/modules/sales'
 import { paths } from '@/app/routes/paths'
 import { useVehicles } from '@/features/vehicles/hooks/useVehicles'
@@ -19,9 +19,12 @@ import { LeadConversation } from '../components/LeadConversation'
 import { LeadDetailInfo } from '../components/LeadDetailInfo'
 import { LeadEditDialog, type LeadEditFormValues } from '../components/LeadEditDialog'
 import { LeadNotesSection } from '../components/LeadNotesSection'
+import { LeadTasksSection } from '../components/LeadTasksSection'
 import { useLead } from '../hooks/useLead'
 import { useLeadMutations } from '../hooks/useLeadMutations'
+import { useLeadTaskMutations } from '../hooks/useLeadTaskMutations'
 import { buildLeadActivity } from '../utils/buildLeadActivity'
+import { useAuth } from '@/features/auth/context/AuthContext'
 
 const VEHICLE_FETCH_SIZE = 500
 
@@ -33,6 +36,7 @@ export const LeadDetailPage = () => {
   const [editOpen, setEditOpen] = useState(false)
   const [deleteOpen, setDeleteOpen] = useState(false)
 
+  const { dealer } = useAuth()
   const leadQuery = useLead(id)
   const detail = leadQuery.data ?? null
   const lead = detail?.lead ?? null
@@ -54,6 +58,7 @@ export const LeadDetailPage = () => {
   const vehicles = vehiclesQuery.data?.items ?? []
 
   const { updateStatus, addNote, addMessage, updateLead, deleteLead } = useLeadMutations()
+  const { createTask, completeTask, deleteTask } = useLeadTaskMutations()
 
   const activityEvents = useMemo(() => {
     if (!lead) return []
@@ -161,6 +166,46 @@ export const LeadDetailPage = () => {
     }
   }
 
+  const handleCreateTask = async (input: { title: string, dueAt: string, notes: string | null }) => {
+    if (!dealer?.id) {
+      showToast('No fue posible crear el seguimiento.', 'error')
+      throw new Error('dealer missing')
+    }
+    try {
+      await createTask.mutateAsync({
+        dealerId: dealer.id,
+        leadId: lead.id,
+        title: input.title,
+        dueAt: input.dueAt,
+        notes: input.notes
+      })
+      showToast('Seguimiento creado')
+    } catch {
+      showToast('No fue posible crear el seguimiento.', 'error')
+      throw new Error('create task failed')
+    }
+  }
+
+  const handleCompleteTask = async (taskId: string) => {
+    try {
+      await completeTask.mutateAsync({ leadId: lead.id, taskId })
+      showToast('Seguimiento completado')
+    } catch {
+      showToast('No fue posible completar el seguimiento.', 'error')
+      throw new Error('complete task failed')
+    }
+  }
+
+  const handleDeleteTask = async (task: LeadTask) => {
+    try {
+      await deleteTask.mutateAsync({ leadId: lead.id, task })
+      showToast('Seguimiento eliminado')
+    } catch {
+      showToast('No fue posible eliminar el seguimiento.', 'error')
+      throw new Error('delete task failed')
+    }
+  }
+
   const handleDeleteLead = async () => {
     try {
       await deleteLead.mutateAsync(lead.id)
@@ -213,6 +258,12 @@ export const LeadDetailPage = () => {
         <Grid size={{ xs: 12, lg: 8 }}>
           <Stack spacing={2.5}>
             <LeadActivityTimeline events={activityEvents} />
+            <LeadTasksSection
+              tasks={detail?.tasks ?? []}
+              onCreateTask={handleCreateTask}
+              onCompleteTask={handleCompleteTask}
+              onDeleteTask={handleDeleteTask}
+            />
             <LeadNotesSection notes={detail?.notes ?? []} onAddNote={handleAddNote} />
             <Card component='section' aria-labelledby='lead-messages-title'>
               <CardContent sx={{ p: 0 }}>

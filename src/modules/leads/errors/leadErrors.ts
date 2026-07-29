@@ -25,6 +25,15 @@ export class LeadMessagesRepositoryError extends Error {
   }
 }
 
+export class LeadTasksRepositoryError extends Error {
+  readonly code = 'LEAD_TASKS_REPOSITORY_ERROR'
+
+  constructor(message: string, public readonly cause?: unknown) {
+    super(message)
+    this.name = 'LeadTasksRepositoryError'
+  }
+}
+
 export class LeadServiceError extends Error {
   readonly code = 'LEAD_SERVICE_ERROR'
 
@@ -44,4 +53,8 @@ export const assertLeadNotesRepositorySuccess = (error: { message: string } | nu
 
 export const assertLeadMessagesRepositorySuccess = (error: { message: string } | null, context: string): void => {
   if (error) throw new LeadMessagesRepositoryError(`${context}: ${error.message}`, error)
+}
+
+export const assertLeadTasksRepositorySuccess = (error: { message: string } | null, context: string): void => {
+  if (error) throw new LeadTasksRepositoryError(`${context}: ${error.message}`, error)
 }

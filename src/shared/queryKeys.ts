@@ -14,7 +14,9 @@ export const queryKeys = {
     allLeads: ['leads', 'all'] as const,
     list: (params: LeadListParams) => ['leads', 'list', params] as const,
     search: (params: import('@/modules/leads/types').LeadSearchParams) => ['leads', 'search', params] as const,
-    detail: (id: string) => ['leads', 'detail', id] as const
+    detail: (id: string) => ['leads', 'detail', id] as const,
+    pendingTasks: (limit: number) => ['leads', 'pending-tasks', limit] as const,
+    overdueTaskCount: ['leads', 'overdue-task-count'] as const
   },
   sales: {
     all: ['sales'] as const,

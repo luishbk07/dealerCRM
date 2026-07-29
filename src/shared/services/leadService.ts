@@ -4,18 +4,22 @@ import type {
   CreateLeadInput,
   CreateLeadMessageInput,
   CreateLeadNoteInput,
+  CreateLeadTaskInput,
   Lead,
   LeadListResult,
   LeadMessage,
   LeadNote,
   LeadSearchParams,
   LeadStatus,
+  LeadTask,
+  PendingLeadTask,
   UpdateLeadInput
 } from '@/modules/leads/types'
 import {
   leadMessageRepository,
   leadNoteRepository,
   leadRepository,
+  leadTaskRepository,
   type LeadListParams
 } from '@/shared/repositories'
 import { vehicleRepository } from '@/shared/repositories/vehicleRepository'
@@ -43,6 +47,7 @@ export interface LeadWithRelations {
   lead: Lead
   notes: LeadNote[]
   messages: LeadMessage[]
+  tasks: LeadTask[]
 }
 
 const nowIso = (): string => new Date().toISOString()
@@ -152,11 +157,12 @@ export const leadService = {
     return wrapServiceCall(async () => {
       const lead = await leadRepository.getById(leadId)
       if (!lead) return null
-      const [notes, messages] = await Promise.all([
+      const [notes, messages, tasksResult] = await Promise.all([
         leadNoteRepository.getByLead(leadId),
-        leadMessageRepository.getByLead(leadId)
+        leadMessageRepository.getByLead(leadId),
+        leadTaskRepository.listByLead(leadId).catch(() => [])
       ])
-      return { lead, notes, messages }
+      return { lead, notes, messages, tasks: tasksResult }
     }, 'Failed to load lead detail')
   },
 
@@ -209,6 +215,45 @@ export const leadService = {
 
   addDealerMessage(leadId: string, message: string): Promise<LeadMessage> {
     return this.addMessage(leadId, LEAD_SENDER_DEALER, message)
+  },
+
+  listPendingTasks(limit: number): Promise<PendingLeadTask[]> {
+    return wrapServiceCall(() => leadTaskRepository.listPending(limit), 'Failed to load pending tasks')
+  },
+
+  countOverdueTasks(): Promise<number> {
+    return wrapServiceCall(() => leadTaskRepository.countOverdue(), 'Failed to count overdue tasks')
+  },
+
+  async createTask(input: CreateLeadTaskInput): Promise<LeadTask> {
+    return wrapServiceCall(async () => {
+      const lead = await leadRepository.getById(input.leadId)
+      if (!lead?.dealerId) throw new LeadServiceError('Lead not found')
+      const task = await leadTaskRepository.create(input)
+      await activityService.logLeadTaskCreated(lead.dealerId, task, lead)
+      return task
+    }, 'Failed to create lead task')
+  },
+
+  async completeTask(taskId: string): Promise<LeadTask> {
+    return wrapServiceCall(async () => {
+      const task = await leadTaskRepository.complete(taskId)
+      const lead = await leadRepository.getById(task.leadId)
+      if (lead?.dealerId) {
+        await activityService.logLeadTaskCompleted(lead.dealerId, task, lead)
+      }
+      return task
+    }, 'Failed to complete lead task')
+  },
+
+  async deleteTask(task: LeadTask): Promise<void> {
+    return wrapServiceCall(async () => {
+      const lead = await leadRepository.getById(task.leadId)
+      await leadTaskRepository.delete(task.id)
+      if (lead?.dealerId) {
+        await activityService.logLeadTaskDeleted(lead.dealerId, task, lead)
+      }
+    }, 'Failed to delete lead task')
   }
 }
 
@@ -216,12 +261,15 @@ export type {
   CreateLeadInput,
   CreateLeadMessageInput,
   CreateLeadNoteInput,
+  CreateLeadTaskInput,
   Lead,
   LeadListResult,
   LeadMessage,
   LeadNote,
   LeadSearchParams,
   LeadStatus,
+  LeadTask,
+  PendingLeadTask,
   UpdateLeadInput
 }
 

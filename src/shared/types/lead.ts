@@ -42,3 +42,12 @@ export interface LeadMessage {
   message: string | null
   createdAt: string
 }
+
+export type {
+  LeadTask,
+  PendingLeadTask,
+  CreateLeadTaskInput,
+  UpdateLeadTaskInput,
+  LeadTaskStatus,
+  LeadTaskFilter
+} from '@/modules/leads/types/leadTask'

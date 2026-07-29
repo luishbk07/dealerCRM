@@ -6,6 +6,7 @@ import { queryKeys } from '@/shared/queryKeys'
 import type { Vehicle } from '@/shared/types'
 import { useDashboardStats } from './useDashboardStats'
 import { useActivityLogs } from './useActivityLogs'
+import { usePendingLeadTasks, useOverdueTaskCount } from '@/features/leads/hooks/usePendingLeadTasks'
 
 const RECENT_LEADS_PARAMS = { page: 0, pageSize: 5 }
 const VEHICLE_LOOKUP_PARAMS = { page: 0, pageSize: 500 }
@@ -14,6 +15,8 @@ export const useDashboardPage = () => {
   const snapshotQuery = useDashboardStats()
   const activityQuery = useActivityLogs()
   const recentLeadsQuery = useLeads(RECENT_LEADS_PARAMS)
+  const pendingTasksQuery = usePendingLeadTasks(5)
+  const overdueTasksQuery = useOverdueTaskCount()
 
   const recentLeads = recentLeadsQuery.data?.items ?? []
   const needsVehicleLookup = recentLeads.some((lead) => lead.vehicleId)
@@ -33,31 +36,28 @@ export const useDashboardPage = () => {
     return map
   }, [vehiclesQuery.data?.items])
 
-  const isLoading =
-    snapshotQuery.isLoading ||
-    activityQuery.isLoading ||
-    recentLeadsQuery.isLoading ||
-    (needsVehicleLookup && vehiclesQuery.isLoading)
-
-  const isError =
-    snapshotQuery.isError ||
-    activityQuery.isError ||
-    recentLeadsQuery.isError ||
-    (needsVehicleLookup && vehiclesQuery.isError)
-
-  const error =
-    snapshotQuery.error ??
-    activityQuery.error ??
-    recentLeadsQuery.error ??
-    vehiclesQuery.error
-
   return {
     snapshot: snapshotQuery.data,
+    snapshotLoading: snapshotQuery.isLoading,
+    snapshotError: snapshotQuery.isError ? snapshotQuery.error : null,
+
     recentLeads,
+    recentLeadsLoading: recentLeadsQuery.isLoading,
+    recentLeadsError: recentLeadsQuery.isError,
+
     vehicleById,
+    vehiclesLoading: needsVehicleLookup && vehiclesQuery.isLoading,
+    vehiclesError: needsVehicleLookup && vehiclesQuery.isError,
+
     activities: activityQuery.data ?? [],
-    isLoading,
-    isError,
-    error
+    activitiesLoading: activityQuery.isLoading,
+    activitiesError: activityQuery.isError,
+
+    pendingTasks: pendingTasksQuery.data ?? [],
+    pendingTasksLoading: pendingTasksQuery.isLoading,
+    pendingTasksError: pendingTasksQuery.isError,
+
+    overdueTaskCount: overdueTasksQuery.isError ? 0 : (overdueTasksQuery.data ?? 0),
+    overdueTasksError: overdueTasksQuery.isError
   }
 }
