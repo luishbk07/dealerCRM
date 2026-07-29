@@ -18,6 +18,7 @@ const PAGE_SIZE = 12
 const INITIAL_FILTERS: VehicleFiltersState = {
   search: '',
   status: 'all',
+  featured: 'all',
   brand: '',
   yearMin: '',
   yearMax: '',
@@ -45,6 +46,11 @@ export const VehiclesListPage = () => {
     page,
     pageSize: PAGE_SIZE,
     status: filters.status === 'all' ? null : filters.status,
+    featured: filters.featured === 'all'
+      ? null
+      : filters.featured === 'featured'
+        ? 'featured' as const
+        : 'not_featured' as const,
     brand: filters.brand.trim() || null,
     yearMin: toNumberOrNull(filters.yearMin),
     yearMax: toNumberOrNull(filters.yearMax),

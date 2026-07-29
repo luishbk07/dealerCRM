@@ -17,6 +17,7 @@ import LocalGasStationOutlinedIcon from '@mui/icons-material/LocalGasStationOutl
 import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined'
 import SpeedOutlinedIcon from '@mui/icons-material/SpeedOutlined'
 import { formatCurrency, formatNumber } from '@/shared/utils/format'
+import { FeaturedBadge } from '@/shared/components'
 import type { PublicVehicleFiltersState, PublicVehicleSort } from '../types'
 
 interface PublicVehicleFiltersProps {
@@ -147,6 +148,7 @@ interface PublicVehicleCardProps {
   transmission: string | null
   fuelType: string | null
   status: string
+  featured?: boolean
   imageUrl: string | null
   onViewDetails: () => void
 }
@@ -160,6 +162,7 @@ export const PublicVehicleCard = ({
   transmission,
   fuelType,
   status,
+  featured = false,
   imageUrl,
   onViewDetails
 }: PublicVehicleCardProps) => {
@@ -176,7 +179,10 @@ export const PublicVehicleCard = ({
           loading='lazy'
           sx={{ aspectRatio: '16 / 10', objectFit: 'cover' }}
         />
-        <Box sx={{ position: 'absolute', top: 12, left: 12 }}>
+        <Box sx={{ position: 'absolute', top: 12, left: 12, display: 'flex', flexDirection: 'column', gap: 0.75 }}>
+          {featured ? <FeaturedBadge /> : null}
+        </Box>
+        <Box sx={{ position: 'absolute', bottom: 12, left: 12 }}>
           <Chip label={status === 'active' ? 'Disponible' : status} size='small' color='success' />
         </Box>
       </Box>

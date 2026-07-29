@@ -5,7 +5,9 @@ export const queryKeys = {
     all: ['vehicles'] as const,
     list: (params: VehicleListParams) => ['vehicles', 'list', params] as const,
     detail: (id: string) => ['vehicles', 'detail', id] as const,
-    publicDetail: (id: string) => ['vehicles', 'public-detail', id] as const
+    publicDetail: (id: string) => ['vehicles', 'public-detail', id] as const,
+    featuredCount: (dealerId: string, excludeVehicleId: string | null) =>
+      ['vehicles', 'featured-count', dealerId, excludeVehicleId] as const
   },
   leads: {
     all: ['leads'] as const,

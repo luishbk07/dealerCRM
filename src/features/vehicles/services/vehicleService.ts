@@ -1,5 +1,9 @@
 import type { Vehicle, VehicleImage, VehicleWithImages } from '@/shared/types'
 import {
+  FEATURED_VEHICLES_LIMIT_MESSAGE,
+  MAX_FEATURED_VEHICLES
+} from '@/features/vehicles/constants/featuredVehicles'
+import {
   storageRepository,
   STORAGE_BUCKETS,
   vehicleImageRepository,
@@ -83,7 +87,36 @@ const attachImages = (vehicle: Vehicle, images: VehicleImage[]): VehicleWithImag
   primaryImageUrl: buildPrimaryImageUrl(images)
 })
 
+const assertFeaturedLimit = async (
+  dealerId: string,
+  featured: boolean,
+  excludeVehicleId?: string | null
+): Promise<void> => {
+  if (!featured) return
+  const count = await vehicleRepository.countFeaturedByDealer(dealerId, excludeVehicleId)
+  if (count >= MAX_FEATURED_VEHICLES) {
+    throw new Error(FEATURED_VEHICLES_LIMIT_MESSAGE)
+  }
+}
+
+const logFeaturedChange = async (
+  dealerId: string,
+  previous: Vehicle | null,
+  next: Vehicle
+): Promise<void> => {
+  if (!previous || previous.featured === next.featured) return
+  if (next.featured) {
+    await activityService.logVehicleFeatured(dealerId, next)
+    return
+  }
+  await activityService.logVehicleUnfeatured(dealerId, next)
+}
+
 export const vehicleService = {
+  countFeatured(dealerId: string, excludeVehicleId?: string | null): Promise<number> {
+    return vehicleRepository.countFeaturedByDealer(dealerId, excludeVehicleId)
+  },
+
   async listWithImages(params: VehicleListParams): Promise<VehicleListResultWithImages> {
     const page = await vehicleRepository.list(params)
     const ids = page.items.map((vehicle) => vehicle.id)
@@ -113,6 +146,7 @@ export const vehicleService = {
     payload: VehicleFormPayload,
     images: VehicleImageUpload[] = []
   ): Promise<VehicleWithImages> {
+    await assertFeaturedLimit(dealerId, payload.featured)
     const insertPayload: CreateVehicleRow = {
       dealer_id: dealerId,
       ...toRow(payload)
@@ -121,6 +155,9 @@ export const vehicleService = {
     const uploadedImages = await vehicleService.uploadImages(dealerId, vehicle.id, images, 0)
     const result = attachImages(vehicle, uploadedImages)
     await activityService.logVehicleCreated(dealerId, vehicle)
+    if (vehicle.featured) {
+      await activityService.logVehicleFeatured(dealerId, vehicle)
+    }
     return result
   },
 
@@ -130,12 +167,15 @@ export const vehicleService = {
     payload: VehicleFormPayload,
     newImages: VehicleImageUpload[] = []
   ): Promise<VehicleWithImages> {
+    const previous = await vehicleRepository.getById(id)
+    await assertFeaturedLimit(dealerId, payload.featured, id)
     const updated = await vehicleRepository.update(id, toRow(payload))
     const existing = await vehicleImageRepository.listByVehicleId(id)
     const startOrder = existing.length
     const uploaded = await vehicleService.uploadImages(dealerId, id, newImages, startOrder)
     const combined = [...existing, ...uploaded]
     const result = attachImages(updated, combined)
+    await logFeaturedChange(dealerId, previous, updated)
     await activityService.logVehicleUpdated(dealerId, updated)
     return result
   },

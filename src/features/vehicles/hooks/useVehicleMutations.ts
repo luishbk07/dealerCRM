@@ -24,6 +24,10 @@ export const useVehicleMutations = () => {
   const invalidate = (vehicleId?: string) => {
     queryClient.invalidateQueries({ queryKey: queryKeys.vehicles.all })
     queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.snapshot })
+    queryClient.invalidateQueries({ queryKey: ['activity'] })
+    if (dealer?.id) {
+      queryClient.invalidateQueries({ queryKey: ['vehicles', 'featured-count', dealer.id] })
+    }
     if (vehicleId) {
       queryClient.invalidateQueries({ queryKey: queryKeys.vehicles.detail(vehicleId) })
     }

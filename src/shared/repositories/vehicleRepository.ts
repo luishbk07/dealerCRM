@@ -10,6 +10,8 @@ const VEHICLE_COLUMNS = `
 
 export type VehicleListSort = 'newest' | 'price_asc' | 'price_desc'
 
+export type VehicleFeaturedFilterParam = 'featured' | 'not_featured'
+
 export interface VehicleListParams {
   page: number
   pageSize: number
@@ -24,6 +26,8 @@ export interface VehicleListParams {
   fuelType?: string | null
   search?: string | null
   sort?: VehicleListSort | null
+  featured?: VehicleFeaturedFilterParam | null
+  featuredFirst?: boolean
 }
 
 export interface VehicleListResult {
@@ -65,6 +69,10 @@ export const vehicleRepository = {
 
     let query = supabase.from('vehicles').select(VEHICLE_COLUMNS, { count: 'exact' })
 
+    if (params.featuredFirst) {
+      query = query.order('featured', { ascending: false })
+    }
+
     const sort = params.sort ?? 'newest'
     if (sort === 'price_asc') {
       query = query.order('price', { ascending: true, nullsFirst: false })
@@ -78,6 +86,8 @@ export const vehicleRepository = {
 
     if (params.dealerId) query = query.eq('dealer_id', params.dealerId)
     if (params.status) query = query.eq('status', params.status)
+    if (params.featured === 'featured') query = query.eq('featured', true)
+    if (params.featured === 'not_featured') query = query.eq('featured', false)
     if (params.brand) query = query.ilike('brand', `%${params.brand}%`)
     if (params.yearMin !== null && params.yearMin !== undefined) query = query.gte('year', params.yearMin)
     if (params.yearMax !== null && params.yearMax !== undefined) query = query.lte('year', params.yearMax)
@@ -140,5 +150,21 @@ export const vehicleRepository = {
   async remove(id: string): Promise<void> {
     const { error } = await supabase.from('vehicles').delete().eq('id', id)
     if (error) throw new Error(error.message)
+  },
+
+  async countFeaturedByDealer(dealerId: string, excludeVehicleId?: string | null): Promise<number> {
+    let query = supabase
+      .from('vehicles')
+      .select('id', { count: 'exact', head: true })
+      .eq('dealer_id', dealerId)
+      .eq('featured', true)
+
+    if (excludeVehicleId) {
+      query = query.neq('id', excludeVehicleId)
+    }
+
+    const { count, error } = await query
+    if (error) throw new Error(error.message)
+    return count ?? 0
   }
 }

@@ -89,6 +89,28 @@ export const activityService = {
     })
   },
 
+  logVehicleFeatured(dealerId: string, vehicle: Vehicle): Promise<void> {
+    return safeLog({
+      dealerId,
+      entityType: 'vehicle',
+      entityId: vehicle.id,
+      action: 'vehicle_featured',
+      title: 'Vehículo destacado',
+      description: `${vehicleLabel(vehicle)} ahora aparece primero en el sitio público`
+    })
+  },
+
+  logVehicleUnfeatured(dealerId: string, vehicle: Vehicle): Promise<void> {
+    return safeLog({
+      dealerId,
+      entityType: 'vehicle',
+      entityId: vehicle.id,
+      action: 'vehicle_unfeatured',
+      title: 'Vehículo removido de destacados',
+      description: `${vehicleLabel(vehicle)} ya no está destacado en el sitio público`
+    })
+  },
+
   logLeadCreated(lead: Lead): Promise<void> {
     if (!lead.dealerId) return Promise.resolve()
     return safeLog({

@@ -5,6 +5,8 @@ export type ActivityAction =
   | 'vehicle_updated'
   | 'vehicle_deleted'
   | 'vehicle_shared'
+  | 'vehicle_featured'
+  | 'vehicle_unfeatured'
   | 'lead_created'
   | 'lead_updated'
   | 'lead_status_changed'

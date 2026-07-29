@@ -4,6 +4,7 @@ import SearchIcon from '@mui/icons-material/Search'
 export interface VehicleFiltersState {
   search: string
   status: string | 'all'
+  featured: 'all' | 'featured' | 'not_featured'
   brand: string
   yearMin: string
   yearMax: string
@@ -58,6 +59,17 @@ export const VehicleFilters = ({ value, statusOptions, onChange }: VehicleFilter
             {buildStatusLabel(status)}
           </MenuItem>
         ))}
+      </TextField>
+      <TextField
+        select
+        label='Destacados'
+        value={value.featured}
+        onChange={(event) => onChange({ ...value, featured: event.target.value as VehicleFiltersState['featured'] })}
+        sx={{ minWidth: 160 }}
+      >
+        <MenuItem value='all'>Todos</MenuItem>
+        <MenuItem value='featured'>Destacados</MenuItem>
+        <MenuItem value='not_featured'>No destacados</MenuItem>
       </TextField>
       <TextField
         label='Marca'

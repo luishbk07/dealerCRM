@@ -136,6 +136,7 @@ export const PublicDealerPage = () => {
                     transmission={vehicle.transmission}
                     fuelType={vehicle.fuelType}
                     status={vehicle.status}
+                    featured={vehicle.featured}
                     imageUrl={vehicle.primaryImageUrl}
                     onViewDetails={() => navigate(paths.dealerPublicVehicle(dealerSlug!, vehicle.id))}
                   />

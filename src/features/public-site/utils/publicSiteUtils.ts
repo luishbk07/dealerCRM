@@ -29,7 +29,8 @@ export const buildPublicVehicleListParams = (
     transmission: filters.transmission.trim() || null,
     fuelType: filters.fuelType.trim() || null,
     search: filters.search.trim() || null,
-    sort: filters.sort
+    sort: filters.sort,
+    featuredFirst: true
   }
 }
 

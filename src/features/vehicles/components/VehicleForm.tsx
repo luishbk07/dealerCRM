@@ -1,4 +1,4 @@
-import { Box, Button, Card, CardContent, Divider, FormControlLabel, InputAdornment, MenuItem, Stack, Switch, TextField, ToggleButton, ToggleButtonGroup, Typography } from '@mui/material'
+import { Box, Button, Card, CardContent, Checkbox, Divider, FormControlLabel, FormHelperText, InputAdornment, MenuItem, Stack, TextField, ToggleButton, ToggleButtonGroup, Typography } from '@mui/material'
 import Grid from '@mui/material/Grid2'
 import SaveOutlinedIcon from '@mui/icons-material/SaveOutlined'
 import { useEffect, useState, type FormEvent } from 'react'
@@ -14,6 +14,11 @@ import {
 } from '../constants/vehicleFieldOptions'
 import { ImageUploader, type PendingImage } from './ImageUploader'
 import { useVehicleForm, toFormPayload, type VehicleFormValues } from '../hooks/useVehicleForm'
+import { useFeaturedVehicleCount } from '../hooks/useFeaturedVehicleCount'
+import {
+  FEATURED_VEHICLES_LIMIT_MESSAGE,
+  MAX_FEATURED_VEHICLES
+} from '../constants/featuredVehicles'
 import type { VehicleFormPayload, VehicleImageUpload } from '../services/vehicleService'
 
 interface VehicleFormProps {
@@ -44,7 +49,21 @@ export const VehicleForm = ({
   onSetPrimaryImage
 }: VehicleFormProps) => {
   const form = useVehicleForm(initial)
+  const featuredCountQuery = useFeaturedVehicleCount(initial?.id)
   const [pendingImages, setPendingImages] = useState<PendingImage[]>([])
+  const [featuredError, setFeaturedError] = useState<string | null>(null)
+
+  const featuredCount = featuredCountQuery.data ?? 0
+  const featuredLimitReached = featuredCount >= MAX_FEATURED_VEHICLES
+
+  const handleFeaturedChange = (checked: boolean) => {
+    if (checked && featuredLimitReached && !form.values.featured) {
+      setFeaturedError(FEATURED_VEHICLES_LIMIT_MESSAGE)
+      return
+    }
+    setFeaturedError(null)
+    form.setField('featured', checked)
+  }
 
   useEffect(() => {
     return () => {
@@ -80,6 +99,10 @@ export const VehicleForm = ({
 
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault()
+    if (form.values.featured && featuredLimitReached && !initial?.featured) {
+      setFeaturedError(FEATURED_VEHICLES_LIMIT_MESSAGE)
+      return
+    }
     if (!form.validate()) return
     const payload = toFormPayload(form.values)
     const uploads: VehicleImageUpload[] = pendingImages.map((image) => ({
@@ -235,13 +258,17 @@ export const VehicleForm = ({
                 <Grid size={{ xs: 12 }}>
                   <FormControlLabel
                     control={
-                      <Switch
+                      <Checkbox
                         checked={form.values.featured}
-                        onChange={(event) => form.setField('featured', event.target.checked)}
+                        onChange={(event) => handleFeaturedChange(event.target.checked)}
+                        disabled={featuredCountQuery.isLoading || (featuredLimitReached && !form.values.featured)}
                       />
                     }
-                    label='Destacar en el catálogo público'
+                    label='⭐ Destacar este vehículo'
                   />
+                  <FormHelperText error={Boolean(featuredError)} sx={{ mx: 0 }}>
+                    {featuredError ?? 'Los vehículos destacados aparecen primero en el sitio público.'}
+                  </FormHelperText>
                 </Grid>
                 <Grid size={{ xs: 12 }}>{renderText('description', 'Descripción', { multiline: true, minRows: 3 })}</Grid>
               </Grid>

@@ -3,7 +3,7 @@ import LocalGasStationOutlinedIcon from '@mui/icons-material/LocalGasStationOutl
 import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined'
 import SpeedOutlinedIcon from '@mui/icons-material/SpeedOutlined'
 import type { VehicleWithImages } from '@/shared/types'
-import { StatusChip } from '@/shared/components'
+import { FeaturedBadge, StatusChip } from '@/shared/components'
 import { formatCurrency, formatNumber } from '@/shared/utils/format'
 import { VehicleActionsMenu } from './VehicleActionsMenu'
 
@@ -43,7 +43,10 @@ export const VehicleCard = ({ vehicle, onClick, onShare }: VehicleCardProps) => 
             alt={`${vehicle.brand} ${vehicle.model}`}
             sx={{ aspectRatio: '16 / 10', objectFit: 'cover' }}
           />
-          <Box sx={{ position: 'absolute', top: 12, left: 12 }}>
+          <Box sx={{ position: 'absolute', top: 12, left: 12, display: 'flex', flexDirection: 'column', gap: 0.75, alignItems: 'flex-start' }}>
+            {vehicle.featured ? <FeaturedBadge /> : null}
+          </Box>
+          <Box sx={{ position: 'absolute', bottom: 12, left: 12 }}>
             <StatusChip status={vehicle.status} />
           </Box>
           {additionalCount > 0 ? (
