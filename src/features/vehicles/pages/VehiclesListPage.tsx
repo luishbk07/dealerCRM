@@ -1,12 +1,18 @@
-import { Alert, Box, Button, Pagination, Stack } from '@mui/material'
+import { Box, Button, Pagination, Stack } from '@mui/material'
 import Grid from '@mui/material/Grid2'
 import AddIcon from '@mui/icons-material/Add'
 import DirectionsCarFilledOutlinedIcon from '@mui/icons-material/DirectionsCarFilledOutlined'
 import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '@/features/auth/context/AuthContext'
-import { EmptyState, LoadingState, PageHeader } from '@/shared/components'
+import {
+  CardGridSkeleton,
+  EmptyState,
+  ErrorAlert,
+  PageHeader
+} from '@/shared/components'
 import { paths } from '@/app/routes/paths'
+import { withListReturn } from '@/shared/utils/listNavigation'
 import type { VehicleWithImages } from '@/shared/types'
 import { useVehicles } from '../hooks/useVehicles'
 import { VehicleCard } from '../components/VehicleCard'
@@ -59,19 +65,44 @@ export const VehiclesListPage = () => {
     search: filters.search.trim() || null
   }), [page, filters])
 
-  const { data, isLoading, isError, error, isFetching } = useVehicles(queryParams)
+  const { data, isLoading, isError, error, isFetching, refetch } = useVehicles(queryParams)
 
   const handleFiltersChange = (next: VehicleFiltersState) => {
     setFilters(next)
     setPage(0)
   }
 
-  if (isLoading) return <LoadingState message='Cargando inventario…' />
-  if (isError) return <Alert severity='error'>{(error as Error).message}</Alert>
+  if (isLoading) {
+    return (
+      <Box>
+        <PageHeader title='Vehículos' subtitle='Cargando inventario…' />
+        <CardGridSkeleton count={8} />
+      </Box>
+    )
+  }
+
+  if (isError) {
+    return (
+      <Box>
+        <PageHeader title='Vehículos' />
+        <ErrorAlert error={error} onRetry={() => void refetch()} />
+      </Box>
+    )
+  }
 
   const items = data?.items ?? []
   const total = data?.total ?? 0
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE))
+  const hasFilters = Boolean(
+    filters.search.trim() ||
+    filters.status !== 'all' ||
+    filters.featured !== 'all' ||
+    filters.brand.trim() ||
+    filters.yearMin ||
+    filters.yearMax ||
+    filters.priceMin ||
+    filters.priceMax
+  )
 
   return (
     <Box>
@@ -79,8 +110,13 @@ export const VehiclesListPage = () => {
         title='Vehículos'
         subtitle={`${total} vehículo${total === 1 ? '' : 's'} en tu inventario`}
         actions={
-          <Button variant='contained' startIcon={<AddIcon />} onClick={() => navigate(paths.vehicleNew)}>
-            Nuevo vehículo
+          <Button
+            variant='contained'
+            startIcon={<AddIcon />}
+            onClick={() => navigate(paths.vehicleNew)}
+            aria-label='Agregar vehículo'
+          >
+            Agregar vehículo
           </Button>
         }
       />
@@ -90,16 +126,21 @@ export const VehiclesListPage = () => {
       {items.length === 0 ? (
         <EmptyState
           icon={<DirectionsCarFilledOutlinedIcon fontSize='inherit' />}
-          title={total === 0 ? 'Aún no tienes vehículos' : 'Sin resultados'}
+          title={total === 0 && !hasFilters ? 'Todavía no tienes vehículos.' : 'Sin resultados'}
           description={
-            total === 0
-              ? 'Publica tu primer vehículo y empieza a captar leads.'
+            total === 0 && !hasFilters
+              ? 'Publica tu primer vehículo y empieza a captar leads desde tu sitio público.'
               : 'Prueba ajustar los filtros o limpiar la búsqueda.'
           }
           action={
-            total === 0 ? (
-              <Button variant='contained' startIcon={<AddIcon />} onClick={() => navigate(paths.vehicleNew)}>
-                Publicar vehículo
+            total === 0 && !hasFilters ? (
+              <Button
+                variant='contained'
+                startIcon={<AddIcon />}
+                onClick={() => navigate(paths.vehicleNew)}
+                aria-label='Agregar vehículo'
+              >
+                Agregar vehículo
               </Button>
             ) : null
           }
@@ -111,7 +152,7 @@ export const VehiclesListPage = () => {
               <Grid key={vehicle.id} size={{ xs: 12, sm: 6, md: 4, lg: 3 }}>
                 <VehicleCard
                   vehicle={vehicle}
-                  onClick={() => navigate(paths.vehicleEdit(vehicle.id))}
+                  onClick={() => navigate(paths.vehicleEdit(vehicle.id), withListReturn(paths.vehicles))}
                   onShare={setShareVehicle}
                 />
               </Grid>
@@ -124,6 +165,7 @@ export const VehiclesListPage = () => {
                 page={page + 1}
                 onChange={(_, value) => setPage(value - 1)}
                 color='primary'
+                aria-label='Paginación de vehículos'
               />
             </Stack>
           ) : null}

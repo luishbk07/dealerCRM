@@ -16,8 +16,8 @@ import {
   Box,
   Card,
   CardContent,
-  CircularProgress,
   Divider,
+  Skeleton,
   Stack,
   Typography,
   Alert
@@ -88,21 +88,29 @@ const ActivityIcon = ({ action }: { action: ActivityAction }) => (
   </Box>
 )
 
+const LoadingBody = () => (
+  <Stack spacing={1.5} sx={{ p: 3 }}>
+    {Array.from({ length: 5 }).map((_, index) => (
+      <Stack key={index} direction='row' spacing={1.5} alignItems='flex-start'>
+        <Skeleton variant='rounded' width={36} height={36} />
+        <Box sx={{ flex: 1 }}>
+          <Skeleton variant='text' width='65%' height={20} />
+          <Skeleton variant='text' width='90%' height={16} />
+        </Box>
+      </Stack>
+    ))}
+  </Stack>
+)
+
 export const RecentActivityFeed = ({ activities, isLoading, isError }: RecentActivityFeedProps) => {
   const renderBody = () => {
-    if (isLoading) {
-      return (
-        <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
-          <CircularProgress size={28} />
-        </Box>
-      )
-    }
+    if (isLoading) return <LoadingBody />
 
     if (isError) {
       return (
         <Box sx={{ p: 3 }}>
           <Alert severity='warning' sx={{ borderRadius: 2 }}>
-            No pudimos cargar la actividad reciente.
+            No se pudo cargar la información.
           </Alert>
         </Box>
       )
@@ -173,7 +181,9 @@ export const RecentActivityFeed = ({ activities, isLoading, isError }: RecentAct
     <Card>
       <CardContent sx={{ p: 0 }}>
         <Box sx={{ p: 3, pb: 2 }}>
-          <Typography variant='h5'>Actividad reciente</Typography>
+          <Typography variant='h5' component='h2'>
+            Actividad reciente
+          </Typography>
           <Typography variant='body2' color='text.secondary'>
             Lo último que ocurrió en tu CRM
           </Typography>

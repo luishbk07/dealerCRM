@@ -2,6 +2,7 @@ import { Box, Toolbar } from '@mui/material'
 import { Outlet } from 'react-router-dom'
 import { useMemo, useState } from 'react'
 import { useAuth } from '@/features/auth/context/AuthContext'
+import { useScrollRestoration } from '@/shared/hooks/useScrollRestoration'
 import { getDealerBannerUrl, getDealerLogoUrl } from '@/shared/utils/dealerBranding'
 import { Sidebar, SIDEBAR_WIDTH } from './Sidebar'
 import { Topbar } from './Topbar'
@@ -9,6 +10,7 @@ import { Topbar } from './Topbar'
 export const AppLayout = () => {
   const { user, dealer } = useAuth()
   const [mobileOpen, setMobileOpen] = useState(false)
+  useScrollRestoration()
 
   const logoUrl = useMemo(() => getDealerLogoUrl(dealer), [dealer])
   const bannerUrl = useMemo(() => getDealerBannerUrl(dealer), [dealer])

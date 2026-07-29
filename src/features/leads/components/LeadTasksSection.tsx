@@ -55,6 +55,7 @@ export const LeadTasksSection = ({
   const [filter, setFilter] = useState<LeadTaskFilter>('all')
   const [createOpen, setCreateOpen] = useState(false)
   const [deleteTarget, setDeleteTarget] = useState<LeadTask | null>(null)
+  const [deleting, setDeleting] = useState(false)
   const [title, setTitle] = useState('')
   const [dueDate, setDueDate] = useState(defaultTaskDueDate)
   const [dueTime, setDueTime] = useState(defaultTaskDueTime())
@@ -114,11 +115,14 @@ export const LeadTasksSection = ({
 
   const handleDelete = async () => {
     if (!deleteTarget) return
+    setDeleting(true)
     try {
       await onDeleteTask(deleteTarget)
       setDeleteTarget(null)
     } catch {
       setDeleteTarget(null)
+    } finally {
+      setDeleting(false)
     }
   }
 
@@ -138,7 +142,7 @@ export const LeadTasksSection = ({
                 </Typography>
               </Box>
             </Stack>
-            <Button variant='contained' size='small' startIcon={<AddIcon />} onClick={() => setCreateOpen(true)}>
+            <Button variant='contained' size='small' startIcon={<AddIcon />} onClick={() => setCreateOpen(true)} aria-label='Nuevo seguimiento'>
               Nuevo seguimiento
             </Button>
           </Stack>
@@ -160,7 +164,7 @@ export const LeadTasksSection = ({
 
           {filteredTasks.length === 0 ? (
             <Typography variant='body2' color='text.secondary'>
-              No hay seguimientos registrados.
+              {filter === 'pending' ? 'No tienes tareas pendientes.' : 'No hay seguimientos registrados.'}
             </Typography>
           ) : (
             <Stack spacing={1.5} divider={<Divider flexItem />}>
@@ -220,8 +224,9 @@ export const LeadTasksSection = ({
                           variant='outlined'
                           onClick={() => void handleComplete(task)}
                           disabled={isCompleting}
+                          aria-label={`Completar ${task.title}`}
                         >
-                          Completar
+                          {isCompleting ? 'Completando…' : 'Completar'}
                         </Button>
                       ) : null}
                       <IconButton
@@ -304,8 +309,9 @@ export const LeadTasksSection = ({
         description='¿Eliminar este seguimiento?'
         confirmLabel='Eliminar'
         destructive
+        confirmLoading={deleting}
         onConfirm={() => void handleDelete()}
-        onCancel={() => setDeleteTarget(null)}
+        onCancel={() => !deleting && setDeleteTarget(null)}
       />
     </>
   )

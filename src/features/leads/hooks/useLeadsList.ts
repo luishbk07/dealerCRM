@@ -80,6 +80,7 @@ export const useLeadsList = (filters: LeadsListFilters) => {
     isError: useSearch ? searchQuery.isError : allQuery.isError,
     error: useSearch ? searchQuery.error : allQuery.error,
     isFetching: useSearch ? searchQuery.isFetching : allQuery.isFetching,
-    hasActiveFilters: useSearch
+    hasActiveFilters: useSearch,
+    refetch: () => (useSearch ? searchQuery.refetch() : allQuery.refetch())
   }
 }

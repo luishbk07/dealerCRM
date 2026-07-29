@@ -1,13 +1,15 @@
-import { Alert, Box, Button, Card, CardContent, Pagination, Stack, Typography } from '@mui/material'
+import { Box, Button, Card, CardContent, Pagination, Stack, Typography } from '@mui/material'
 import AddIcon from '@mui/icons-material/Add'
 import PeopleOutlineIcon from '@mui/icons-material/PeopleOutline'
 import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '@/features/auth'
 import { useVehicles } from '@/features/vehicles/hooks/useVehicles'
-import { EmptyState, LoadingState, PageHeader } from '@/shared/components'
+import { EmptyState, ErrorAlert, PageHeader, TableSkeleton } from '@/shared/components'
 import { useDebouncedValue } from '@/shared/hooks/useDebouncedValue'
 import { useToast } from '@/shared/hooks/useToast'
+import { USER_MESSAGES, getUserFriendlyError } from '@/shared/utils/userMessages'
+import { withListReturn } from '@/shared/utils/listNavigation'
 import type { Vehicle } from '@/shared/types'
 import { paths } from '@/app/routes/paths'
 import { LeadCreateDialog } from '../components/LeadCreateDialog'
@@ -48,7 +50,7 @@ export const LeadsListPage = () => {
     [filters, debouncedSearch, page]
   )
 
-  const { items, total, isLoading, isError, isFetching, hasActiveFilters } = useLeadsList(listFilters)
+  const { items, total, isLoading, isError, error, isFetching, hasActiveFilters, refetch } = useLeadsList(listFilters)
   const { createLead } = useLeadMutations()
 
   const vehiclesQuery = useVehicles({
@@ -87,7 +89,7 @@ export const LeadsListPage = () => {
     message: string | null
   }) => {
     if (!dealer?.id) {
-      showToast('No fue posible crear el lead.', 'error')
+      showToast(getUserFriendlyError(null, USER_MESSAGES.saveFailed), 'error')
       return
     }
     try {
@@ -96,22 +98,27 @@ export const LeadsListPage = () => {
         ...input
       })
       setCreateOpen(false)
-      showToast('Lead creado correctamente')
-      navigate(paths.leadDetail(lead.id))
-    } catch {
-      showToast('No fue posible crear el lead.', 'error')
+      showToast(USER_MESSAGES.leadCreated)
+      navigate(paths.leadDetail(lead.id), withListReturn(paths.leads))
+    } catch (err) {
+      showToast(getUserFriendlyError(err, USER_MESSAGES.saveFailed), 'error')
     }
   }
 
   if (isLoading && items.length === 0) {
-    return <LoadingState message='Cargando leads…' />
+    return (
+      <Box>
+        <PageHeader title='Leads' subtitle='Cargando prospectos…' />
+        <TableSkeleton />
+      </Box>
+    )
   }
 
   if (isError) {
     return (
       <Box>
         <PageHeader title='Leads' subtitle='Gestiona tus prospectos' />
-        <Alert severity='error'>No fue posible cargar los leads.</Alert>
+        <ErrorAlert error={error} onRetry={() => void refetch()} />
       </Box>
     )
   }
@@ -124,7 +131,12 @@ export const LeadsListPage = () => {
         title='Leads'
         subtitle={`${total} lead${total === 1 ? '' : 's'} en tu bandeja`}
         actions={
-          <Button variant='contained' startIcon={<AddIcon />} onClick={() => setCreateOpen(true)}>
+          <Button
+            variant='contained'
+            startIcon={<AddIcon />}
+            onClick={() => setCreateOpen(true)}
+            aria-label='Crear lead'
+          >
             Crear lead
           </Button>
         }
@@ -134,11 +146,16 @@ export const LeadsListPage = () => {
 
       {showEmptyState ? (
         <EmptyState
-          title='No hay leads registrados'
+          title='Todavía no tienes leads.'
           description='Los nuevos prospectos aparecerán aquí.'
           icon={<PeopleOutlineIcon fontSize='inherit' />}
           action={
-            <Button variant='contained' startIcon={<AddIcon />} onClick={() => setCreateOpen(true)}>
+            <Button
+              variant='contained'
+              startIcon={<AddIcon />}
+              onClick={() => setCreateOpen(true)}
+              aria-label='Crear lead'
+            >
               Crear lead
             </Button>
           }
@@ -163,7 +180,7 @@ export const LeadsListPage = () => {
               <LeadsTable
                 leads={items}
                 vehiclesById={vehiclesById}
-                onSelect={(lead) => navigate(paths.leadDetail(lead.id))}
+                onSelect={(lead) => navigate(paths.leadDetail(lead.id), withListReturn(paths.leads))}
               />
             </Box>
             {totalPages > 1 ? (

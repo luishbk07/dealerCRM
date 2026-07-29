@@ -1,15 +1,15 @@
-import { Alert, Box, Card, CardContent, Pagination, Stack, Typography } from '@mui/material'
+import { Box, Card, CardContent, Pagination, Stack, Typography } from '@mui/material'
 import Grid from '@mui/material/Grid2'
+import { useMemo, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { EmptyState, ErrorAlert, KpiCard, PageHeader, SalesListSkeleton } from '@/shared/components'
+import { useDebouncedValue } from '@/shared/hooks/useDebouncedValue'
+import { formatCurrency } from '@/shared/utils/format'
+import { paths } from '@/app/routes/paths'
 import PaidOutlinedIcon from '@mui/icons-material/PaidOutlined'
 import ReceiptLongOutlinedIcon from '@mui/icons-material/ReceiptLongOutlined'
 import TrendingUpOutlinedIcon from '@mui/icons-material/TrendingUpOutlined'
 import ShoppingCartOutlinedIcon from '@mui/icons-material/ShoppingCartOutlined'
-import { useMemo, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { EmptyState, KpiCard, LoadingState, PageHeader } from '@/shared/components'
-import { useDebouncedValue } from '@/shared/hooks/useDebouncedValue'
-import { formatCurrency } from '@/shared/utils/format'
-import { paths } from '@/app/routes/paths'
 import { MonthlyChart } from '../components/MonthlyChart'
 import { SalesFilters, type SalesFiltersState } from '../components/SalesFilters'
 import { SalesTable } from '../components/SalesTable'
@@ -72,15 +72,26 @@ export const SalesListPage = () => {
     summaryQuery.isLoading ||
     monthlyQuery.isLoading
 
+  const loadError = isError || catalog.isError || summaryQuery.isError || monthlyQuery.isError
+
   if (isPageLoading) {
-    return <LoadingState message='Cargando ventas…' />
+    return <SalesListSkeleton />
   }
 
-  if (isError || catalog.isError || summaryQuery.isError || monthlyQuery.isError) {
+  const loadErrorSource = summaryQuery.error ?? monthlyQuery.error ?? catalog.error
+
+  if (loadError) {
     return (
       <Box>
         <PageHeader title='Ventas' subtitle='Historial y resumen de ventas' />
-        <Alert severity='error'>No fue posible cargar las ventas.</Alert>
+        <ErrorAlert
+          error={loadErrorSource}
+          onRetry={() => {
+            void summaryQuery.refetch()
+            void monthlyQuery.refetch()
+            void catalog.refetch()
+          }}
+        />
       </Box>
     )
   }
@@ -135,7 +146,7 @@ export const SalesListPage = () => {
 
       {showEmptyState ? (
         <EmptyState
-          title='Aún no tienes ventas registradas'
+          title='Aún no hay ventas registradas.'
           description='Cuando registres una venta aparecerá aquí.'
         />
       ) : items.length === 0 ? (

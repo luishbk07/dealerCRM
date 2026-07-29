@@ -5,12 +5,12 @@ import {
   Button,
   Card,
   CardContent,
-  CircularProgress,
   Divider,
   List,
   ListItemAvatar,
   ListItemButton,
   ListItemText,
+  Skeleton,
   Stack,
   Typography
 } from '@mui/material'
@@ -40,23 +40,31 @@ const buildInitials = (name: string | null): string => {
     .toUpperCase()
 }
 
+const LoadingBody = () => (
+  <Stack spacing={1.5} sx={{ p: 3 }}>
+    {Array.from({ length: 4 }).map((_, index) => (
+      <Stack key={index} direction='row' spacing={1.5} alignItems='center'>
+        <Skeleton variant='circular' width={40} height={40} />
+        <Box sx={{ flex: 1 }}>
+          <Skeleton variant='text' width='70%' height={20} />
+          <Skeleton variant='text' width='50%' height={16} />
+        </Box>
+      </Stack>
+    ))}
+  </Stack>
+)
+
 export const RecentLeadsList = ({ leads, vehicleById, totalLeads, isLoading, isError }: RecentLeadsListProps) => {
   const navigate = useNavigate()
 
   const renderBody = () => {
-    if (isLoading) {
-      return (
-        <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
-          <CircularProgress size={28} />
-        </Box>
-      )
-    }
+    if (isLoading) return <LoadingBody />
 
     if (isError) {
       return (
         <Box sx={{ p: 3 }}>
           <Alert severity='warning' sx={{ borderRadius: 2 }}>
-            No pudimos cargar los leads recientes.
+            No se pudo cargar la información.
           </Alert>
         </Box>
       )
@@ -66,10 +74,15 @@ export const RecentLeadsList = ({ leads, vehicleById, totalLeads, isLoading, isE
       return (
         <Box sx={{ p: 4, textAlign: 'center' }}>
           <Typography variant='body2' color='text.secondary' sx={{ mb: totalLeads === 0 ? 2 : 0 }}>
-            No hay leads recientes.
+            {totalLeads === 0 ? 'Todavía no tienes leads.' : 'No hay leads recientes.'}
           </Typography>
           {totalLeads === 0 ? (
-            <Button variant='outlined' size='small' onClick={() => navigate(paths.leads)}>
+            <Button
+              variant='outlined'
+              size='small'
+              onClick={() => navigate(paths.leads)}
+              aria-label='Ir a leads'
+            >
               Crea tu primer lead
             </Button>
           ) : null}
@@ -92,6 +105,7 @@ export const RecentLeadsList = ({ leads, vehicleById, totalLeads, isLoading, isE
                   px: 3,
                   transition: 'background-color 0.15s ease'
                 }}
+                aria-label={`Ver lead ${lead.name ?? 'sin nombre'}`}
               >
                 <ListItemAvatar>
                   <Avatar sx={{ bgcolor: 'primary.light', color: 'primary.dark', fontWeight: 600 }}>
@@ -146,7 +160,9 @@ export const RecentLeadsList = ({ leads, vehicleById, totalLeads, isLoading, isE
     <Card sx={{ height: '100%' }}>
       <CardContent sx={{ p: 0 }}>
         <Box sx={{ p: 3, pb: 2 }}>
-          <Typography variant='h5'>Leads recientes</Typography>
+          <Typography variant='h5' component='h2'>
+            Leads recientes
+          </Typography>
           <Typography variant='body2' color='text.secondary'>
             Los últimos 5 prospectos registrados
           </Typography>

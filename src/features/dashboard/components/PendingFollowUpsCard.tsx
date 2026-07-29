@@ -4,11 +4,11 @@ import {
   Card,
   CardContent,
   Chip,
-  CircularProgress,
   Divider,
   List,
   ListItemButton,
   ListItemText,
+  Skeleton,
   Stack,
   Typography
 } from '@mui/material'
@@ -30,23 +30,31 @@ const STATUS_COLORS = {
   completed: 'success'
 } as const
 
+const LoadingBody = () => (
+  <Stack spacing={1.5} sx={{ p: 3 }}>
+    {Array.from({ length: 3 }).map((_, index) => (
+      <Stack key={index} direction='row' spacing={1.5} alignItems='center'>
+        <Box sx={{ flex: 1 }}>
+          <Skeleton variant='text' width='75%' height={20} />
+          <Skeleton variant='text' width='55%' height={16} />
+        </Box>
+        <Skeleton variant='rounded' width={72} height={24} />
+      </Stack>
+    ))}
+  </Stack>
+)
+
 export const PendingFollowUpsCard = ({ tasks, isLoading, isError }: PendingFollowUpsCardProps) => {
   const navigate = useNavigate()
 
   const renderBody = () => {
-    if (isLoading) {
-      return (
-        <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
-          <CircularProgress size={28} />
-        </Box>
-      )
-    }
+    if (isLoading) return <LoadingBody />
 
     if (isError) {
       return (
         <Box sx={{ p: 3 }}>
           <Alert severity='warning' sx={{ borderRadius: 2 }}>
-            No pudimos cargar los seguimientos pendientes.
+            No se pudo cargar la información.
           </Alert>
         </Box>
       )
@@ -56,7 +64,7 @@ export const PendingFollowUpsCard = ({ tasks, isLoading, isError }: PendingFollo
       return (
         <Box sx={{ p: 4, textAlign: 'center' }}>
           <Typography variant='body2' color='text.secondary'>
-            No hay seguimientos pendientes.
+            No tienes tareas pendientes.
           </Typography>
         </Box>
       )
@@ -71,6 +79,7 @@ export const PendingFollowUpsCard = ({ tasks, isLoading, isError }: PendingFollo
               <ListItemButton
                 onClick={() => navigate(paths.leadDetail(task.leadId))}
                 sx={{ py: 1.75, px: 3 }}
+                aria-label={`Ver lead ${task.leadName ?? 'sin nombre'}`}
               >
                 <ListItemText
                   primary={
@@ -109,7 +118,9 @@ export const PendingFollowUpsCard = ({ tasks, isLoading, isError }: PendingFollo
     <Card sx={{ height: '100%' }}>
       <CardContent sx={{ p: 0 }}>
         <Box sx={{ p: 3, pb: 2 }}>
-          <Typography variant='h5'>Seguimientos pendientes</Typography>
+          <Typography variant='h5' component='h2'>
+            Seguimientos pendientes
+          </Typography>
           <Typography variant='body2' color='text.secondary'>
             Próximos recordatorios de contacto
           </Typography>

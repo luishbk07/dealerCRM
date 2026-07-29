@@ -5,11 +5,18 @@ import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline'
 import OpenInNewOutlinedIcon from '@mui/icons-material/OpenInNew'
 import ShareOutlinedIcon from '@mui/icons-material/ShareOutlined'
 import { useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import { useAuth } from '@/features/auth/context/AuthContext'
-import { ConfirmDialog, LoadingState, PageHeader } from '@/shared/components'
+import {
+  ConfirmDialog,
+  DetailPageSkeleton,
+  ErrorAlert,
+  PageHeader
+} from '@/shared/components'
 import { useToast } from '@/shared/hooks/useToast'
 import { paths } from '@/app/routes/paths'
+import { getReturnPath } from '@/shared/utils/listNavigation'
+import { getUserFriendlyError, USER_MESSAGES } from '@/shared/utils/userMessages'
 import type { VehicleImage } from '@/shared/types'
 import { useVehicle } from '../hooks/useVehicle'
 import { useVehicleMutations } from '../hooks/useVehicleMutations'
@@ -21,6 +28,7 @@ import type { VehicleFormPayload, VehicleImageUpload } from '../services/vehicle
 export const VehicleEditPage = () => {
   const { id = '' } = useParams<{ id: string }>()
   const navigate = useNavigate()
+  const location = useLocation()
   const { showToast } = useToast()
   const { dealer } = useAuth()
   const vehicleQuery = useVehicle(id)
@@ -29,50 +37,67 @@ export const VehicleEditPage = () => {
   const [adOpen, setAdOpen] = useState(false)
   const [shareOpen, setShareOpen] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
+  const [imageToDelete, setImageToDelete] = useState<VehicleImage | null>(null)
+  const [deleting, setDeleting] = useState(false)
+
+  const returnPath = getReturnPath(location.state, paths.vehicles)
 
   const handleSubmit = async (payload: VehicleFormPayload, images: VehicleImageUpload[]) => {
     try {
       await update.mutateAsync({ id, payload, newImages: images })
-      showToast('Cambios guardados')
+      showToast(USER_MESSAGES.vehicleUpdated)
     } catch (err) {
-      showToast((err as Error).message, 'error')
+      showToast(getUserFriendlyError(err, USER_MESSAGES.saveFailed), 'error')
     }
   }
 
   const handleDelete = async () => {
-    setConfirmDelete(false)
+    setDeleting(true)
     try {
       await remove.mutateAsync(id)
-      showToast('Vehículo eliminado')
-      navigate(paths.vehicles)
+      setConfirmDelete(false)
+      showToast(USER_MESSAGES.vehicleDeleted)
+      navigate(returnPath)
     } catch (err) {
-      showToast((err as Error).message, 'error')
+      showToast(getUserFriendlyError(err, USER_MESSAGES.deleteFailed), 'error')
+    } finally {
+      setDeleting(false)
     }
   }
 
-  const handleDeleteImage = async (image: VehicleImage) => {
+  const handleDeleteImage = async () => {
+    if (!imageToDelete) return
     try {
-      await deleteImage.mutateAsync(image)
-      showToast('Imagen eliminada')
+      await deleteImage.mutateAsync(imageToDelete)
+      setImageToDelete(null)
+      showToast('Imagen eliminada correctamente.')
     } catch (err) {
-      showToast((err as Error).message, 'error')
+      showToast(getUserFriendlyError(err, USER_MESSAGES.deleteFailed), 'error')
     }
   }
 
   const handleSetPrimary = async (image: VehicleImage) => {
     try {
       await setPrimary.mutateAsync(image)
-      showToast('Imagen principal actualizada')
+      showToast('Imagen principal actualizada.')
     } catch (err) {
-      showToast((err as Error).message, 'error')
+      showToast(getUserFriendlyError(err, USER_MESSAGES.saveFailed), 'error')
     }
   }
 
-  if (vehicleQuery.isLoading) return <LoadingState message='Cargando vehículo…' />
-  if (vehicleQuery.isError) return <Alert severity='error'>{(vehicleQuery.error as Error).message}</Alert>
+  if (vehicleQuery.isLoading) return <DetailPageSkeleton />
+  if (vehicleQuery.isError) {
+    return (
+      <Box>
+        <ErrorAlert error={vehicleQuery.error} onRetry={() => void vehicleQuery.refetch()} />
+      </Box>
+    )
+  }
 
   const vehicle = vehicleQuery.data
-  if (!vehicle) return <Alert severity='error'>Vehículo no encontrado</Alert>
+  if (!vehicle) {
+    return <Alert severity='warning'>Vehículo no encontrado.</Alert>
+  }
 
   return (
     <Box>
@@ -80,8 +105,9 @@ export const VehicleEditPage = () => {
         <Button
           variant='text'
           startIcon={<ArrowBackIcon />}
-          onClick={() => navigate(paths.vehicles)}
+          onClick={() => navigate(returnPath)}
           sx={{ alignSelf: 'flex-start', color: 'text.secondary' }}
+          aria-label='Volver al inventario'
         >
           Volver al inventario
         </Button>
@@ -95,6 +121,7 @@ export const VehicleEditPage = () => {
               variant='outlined'
               startIcon={<ShareOutlinedIcon />}
               onClick={() => setShareOpen(true)}
+              aria-label='Compartir vehículo'
             >
               Compartir
             </Button>
@@ -102,6 +129,7 @@ export const VehicleEditPage = () => {
               variant='outlined'
               startIcon={<OpenInNewOutlinedIcon />}
               onClick={() => window.open(paths.vehiclePublic(vehicle.id), '_blank', 'noopener')}
+              aria-label='Ver página pública del vehículo'
             >
               Ver página pública
             </Button>
@@ -109,6 +137,7 @@ export const VehicleEditPage = () => {
               variant='contained'
               startIcon={<AutoAwesomeOutlinedIcon />}
               onClick={() => setAdOpen(true)}
+              aria-label='Generar anuncio del vehículo'
             >
               Generar anuncio
             </Button>
@@ -117,6 +146,7 @@ export const VehicleEditPage = () => {
               color='error'
               startIcon={<DeleteOutlineIcon />}
               onClick={() => setConfirmDelete(true)}
+              aria-label='Eliminar vehículo'
             >
               Eliminar
             </Button>
@@ -128,8 +158,8 @@ export const VehicleEditPage = () => {
         initial={vehicle}
         submitting={update.isPending}
         onSubmit={handleSubmit}
-        onCancel={() => navigate(paths.vehicles)}
-        onDeleteImage={handleDeleteImage}
+        onCancel={() => navigate(returnPath)}
+        onDeleteImage={(image) => setImageToDelete(image)}
         onSetPrimaryImage={handleSetPrimary}
       />
 
@@ -147,8 +177,20 @@ export const VehicleEditPage = () => {
         description='Esta acción no se puede deshacer. Los leads asociados se mantendrán pero perderán la referencia al vehículo.'
         confirmLabel='Eliminar'
         destructive
-        onConfirm={handleDelete}
+        confirmLoading={deleting}
+        onConfirm={() => void handleDelete()}
         onCancel={() => setConfirmDelete(false)}
+      />
+
+      <ConfirmDialog
+        open={imageToDelete !== null}
+        title='Eliminar imagen'
+        description='¿Eliminar esta imagen del vehículo?'
+        confirmLabel='Eliminar'
+        destructive
+        confirmLoading={deleteImage.isPending}
+        onConfirm={() => void handleDeleteImage()}
+        onCancel={() => setImageToDelete(null)}
       />
     </Box>
   )

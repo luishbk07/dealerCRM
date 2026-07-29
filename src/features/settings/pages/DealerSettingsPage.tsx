@@ -1,8 +1,9 @@
 import { Alert, Box, Card, CardContent } from '@mui/material'
 import { useEffect, useState } from 'react'
 import { useAuth } from '@/features/auth'
-import { LoadingState, PageHeader } from '@/shared/components'
+import { ErrorAlert, PageHeader, SettingsFormSkeleton } from '@/shared/components'
 import { useToast } from '@/shared/hooks/useToast'
+import { USER_MESSAGES } from '@/shared/utils/userMessages'
 import { DealerSettingsForm } from '../components/DealerSettingsForm'
 import { useDealerSettings } from '../hooks/useDealerSettings'
 import { useDealerSettingsMutations } from '../hooks/useDealerSettingsMutations'
@@ -45,14 +46,19 @@ export const DealerSettingsPage = () => {
   }
 
   if (settingsQuery.isLoading || !dealer || !values) {
-    return <LoadingState message='Cargando configuración…' />
+    return (
+      <Box>
+        <PageHeader title='Configuración del Dealer' subtitle='Cargando…' />
+        <SettingsFormSkeleton />
+      </Box>
+    )
   }
 
   if (settingsQuery.isError) {
     return (
       <Box>
         <PageHeader title='Configuración del Dealer' />
-        <Alert severity='error'>No fue posible cargar la configuración.</Alert>
+        <ErrorAlert error={settingsQuery.error} onRetry={() => void settingsQuery.refetch()} />
       </Box>
     )
   }
@@ -77,7 +83,7 @@ export const DealerSettingsPage = () => {
       setValues(dealerToFormValues(updated, user?.email))
       setErrors({})
       await refreshDealer()
-      showToast('Configuración actualizada correctamente.')
+      showToast(USER_MESSAGES.settingsUpdated)
     } catch (error) {
       showToast(getDealerSettingsUserMessage(error), 'error')
     }
@@ -91,7 +97,7 @@ export const DealerSettingsPage = () => {
         previousPath: dealer.logoPath
       })
       await refreshDealer()
-      showToast('Logo actualizado correctamente.')
+      showToast(USER_MESSAGES.logoUploaded)
     } catch (error) {
       showToast(getDealerSettingsUserMessage(error), 'error')
     }
@@ -105,7 +111,7 @@ export const DealerSettingsPage = () => {
         previousPath: dealer.bannerPath
       })
       await refreshDealer()
-      showToast('Banner actualizado correctamente.')
+      showToast(USER_MESSAGES.bannerUploaded)
     } catch (error) {
       showToast(getDealerSettingsUserMessage(error), 'error')
     }

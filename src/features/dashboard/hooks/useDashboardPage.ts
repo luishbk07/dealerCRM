@@ -40,6 +40,7 @@ export const useDashboardPage = () => {
     snapshot: snapshotQuery.data,
     snapshotLoading: snapshotQuery.isLoading,
     snapshotError: snapshotQuery.isError ? snapshotQuery.error : null,
+    refetchSnapshot: snapshotQuery.refetch,
 
     recentLeads,
     recentLeadsLoading: recentLeadsQuery.isLoading,

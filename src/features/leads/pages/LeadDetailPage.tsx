@@ -1,13 +1,15 @@
-import { Alert, Box, Button, Card, CardContent, Stack, Typography } from '@mui/material'
+import { Box, Button, Card, CardContent, Stack, Typography } from '@mui/material'
 import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline'
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined'
 import Grid from '@mui/material/Grid2'
 import { useMemo, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import { LEAD_SENDER_DEALER } from '@/shared/types'
-import { ConfirmDialog, EmptyState, LoadingState, PageHeader } from '@/shared/components'
+import { ConfirmDialog, DetailPageSkeleton, EmptyState, ErrorAlert, PageHeader } from '@/shared/components'
 import { useToast } from '@/shared/hooks/useToast'
+import { USER_MESSAGES, getUserFriendlyError } from '@/shared/utils/userMessages'
+import { getReturnPath } from '@/shared/utils/listNavigation'
 import { LEAD_STATUS_SOLD } from '@/modules/leads/constants/leadStatus'
 import type { LeadStatus, LeadTask } from '@/modules/leads/types'
 import { getSaleUserMessage } from '@/modules/sales'
@@ -30,12 +32,15 @@ const VEHICLE_FETCH_SIZE = 500
 
 export const LeadDetailPage = () => {
   const navigate = useNavigate()
+  const location = useLocation()
   const { id } = useParams<{ id: string }>()
   const { showToast } = useToast()
   const [updatingStatus, setUpdatingStatus] = useState(false)
   const [editOpen, setEditOpen] = useState(false)
   const [deleteOpen, setDeleteOpen] = useState(false)
+  const [deleting, setDeleting] = useState(false)
 
+  const returnPath = getReturnPath(location.state, paths.leads)
   const { dealer } = useAuth()
   const leadQuery = useLead(id)
   const detail = leadQuery.data ?? null
@@ -66,15 +71,20 @@ export const LeadDetailPage = () => {
   }, [lead, detail?.notes, detail?.messages])
 
   if (leadQuery.isLoading) {
-    return <LoadingState message='Cargando detalle del lead…' />
+    return <DetailPageSkeleton />
   }
 
   if (leadQuery.isError) {
     return (
       <Box>
         <PageHeader title='Lead' />
-        <Alert severity='error'>No fue posible cargar el lead.</Alert>
-        <Button startIcon={<ArrowBackIcon />} onClick={() => navigate(paths.leads)} sx={{ mt: 2 }}>
+        <ErrorAlert error={leadQuery.error} onRetry={() => void leadQuery.refetch()} />
+        <Button
+          startIcon={<ArrowBackIcon />}
+          onClick={() => navigate(returnPath)}
+          sx={{ mt: 2 }}
+          aria-label='Volver a leads'
+        >
           Volver a leads
         </Button>
       </Box>
@@ -89,7 +99,12 @@ export const LeadDetailPage = () => {
           title='Lead no encontrado'
           description='El lead que buscas no existe o ya no está disponible.'
           action={
-            <Button variant='contained' startIcon={<ArrowBackIcon />} onClick={() => navigate(paths.leads)}>
+            <Button
+              variant='contained'
+              startIcon={<ArrowBackIcon />}
+              onClick={() => navigate(returnPath)}
+              aria-label='Volver a leads'
+            >
               Volver a leads
             </Button>
           }
@@ -103,15 +118,15 @@ export const LeadDetailPage = () => {
     try {
       await updateStatus.mutateAsync({ leadId: lead.id, status })
       if (status === LEAD_STATUS_SOLD) {
-        showToast('Venta registrada correctamente.')
+        showToast(USER_MESSAGES.saleRegistered)
       } else {
-        showToast('Estado actualizado')
+        showToast(USER_MESSAGES.leadUpdated)
       }
     } catch (error) {
       if (status === LEAD_STATUS_SOLD) {
         showToast(getSaleUserMessage(error), 'error')
       } else {
-        showToast('No fue posible actualizar el estado.', 'error')
+        showToast(getUserFriendlyError(error, USER_MESSAGES.saveFailed), 'error')
       }
     } finally {
       setUpdatingStatus(false)
@@ -121,18 +136,18 @@ export const LeadDetailPage = () => {
   const handleAddNote = async (content: string) => {
     try {
       await addNote.mutateAsync({ leadId: lead.id, note: content })
-      showToast('Nota añadida')
-    } catch {
-      showToast('No fue posible añadir la nota.', 'error')
+      showToast('Nota añadida correctamente.')
+    } catch (err) {
+      showToast(getUserFriendlyError(err, USER_MESSAGES.saveFailed), 'error')
     }
   }
 
   const handleSendMessage = async (content: string) => {
     try {
       await addMessage.mutateAsync({ leadId: lead.id, sender: LEAD_SENDER_DEALER, message: content })
-      showToast('Mensaje enviado')
-    } catch {
-      showToast('No fue posible enviar el mensaje.', 'error')
+      showToast('Mensaje enviado correctamente.')
+    } catch (err) {
+      showToast(getUserFriendlyError(err, USER_MESSAGES.saveFailed), 'error')
     }
   }
 
@@ -153,22 +168,22 @@ export const LeadDetailPage = () => {
       })
       setEditOpen(false)
       if (convertingToSold) {
-        showToast('Venta registrada correctamente.')
+        showToast(USER_MESSAGES.saleRegistered)
       } else {
-        showToast('Lead actualizado correctamente')
+        showToast(USER_MESSAGES.leadUpdated)
       }
     } catch (error) {
       if (convertingToSold) {
         showToast(getSaleUserMessage(error), 'error')
       } else {
-        showToast('No fue posible actualizar el lead.', 'error')
+        showToast(getUserFriendlyError(error, USER_MESSAGES.saveFailed), 'error')
       }
     }
   }
 
   const handleCreateTask = async (input: { title: string, dueAt: string, notes: string | null }) => {
     if (!dealer?.id) {
-      showToast('No fue posible crear el seguimiento.', 'error')
+      showToast(getUserFriendlyError(null, USER_MESSAGES.saveFailed), 'error')
       throw new Error('dealer missing')
     }
     try {
@@ -179,9 +194,9 @@ export const LeadDetailPage = () => {
         dueAt: input.dueAt,
         notes: input.notes
       })
-      showToast('Seguimiento creado')
-    } catch {
-      showToast('No fue posible crear el seguimiento.', 'error')
+      showToast(USER_MESSAGES.taskCreated)
+    } catch (err) {
+      showToast(getUserFriendlyError(err, USER_MESSAGES.saveFailed), 'error')
       throw new Error('create task failed')
     }
   }
@@ -189,9 +204,9 @@ export const LeadDetailPage = () => {
   const handleCompleteTask = async (taskId: string) => {
     try {
       await completeTask.mutateAsync({ leadId: lead.id, taskId })
-      showToast('Seguimiento completado')
-    } catch {
-      showToast('No fue posible completar el seguimiento.', 'error')
+      showToast(USER_MESSAGES.taskCompleted)
+    } catch (err) {
+      showToast(getUserFriendlyError(err, USER_MESSAGES.saveFailed), 'error')
       throw new Error('complete task failed')
     }
   }
@@ -199,21 +214,24 @@ export const LeadDetailPage = () => {
   const handleDeleteTask = async (task: LeadTask) => {
     try {
       await deleteTask.mutateAsync({ leadId: lead.id, task })
-      showToast('Seguimiento eliminado')
-    } catch {
-      showToast('No fue posible eliminar el seguimiento.', 'error')
+      showToast(USER_MESSAGES.taskDeleted)
+    } catch (err) {
+      showToast(getUserFriendlyError(err, USER_MESSAGES.deleteFailed), 'error')
       throw new Error('delete task failed')
     }
   }
 
   const handleDeleteLead = async () => {
+    setDeleting(true)
     try {
       await deleteLead.mutateAsync(lead.id)
       setDeleteOpen(false)
-      showToast('Lead eliminado')
-      navigate(paths.leads)
-    } catch {
-      showToast('No fue posible eliminar el lead.', 'error')
+      showToast(USER_MESSAGES.leadDeleted)
+      navigate(returnPath)
+    } catch (err) {
+      showToast(getUserFriendlyError(err, USER_MESSAGES.deleteFailed), 'error')
+    } finally {
+      setDeleting(false)
     }
   }
 
@@ -226,12 +244,17 @@ export const LeadDetailPage = () => {
           <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} useFlexGap flexWrap='wrap'>
             <Button
               startIcon={<ArrowBackIcon />}
-              onClick={() => navigate(paths.leads)}
+              onClick={() => navigate(returnPath)}
               aria-label='Volver a la lista de leads'
             >
               Volver
             </Button>
-            <Button startIcon={<EditOutlinedIcon />} variant='outlined' onClick={() => setEditOpen(true)}>
+            <Button
+              startIcon={<EditOutlinedIcon />}
+              variant='outlined'
+              onClick={() => setEditOpen(true)}
+              aria-label='Editar lead'
+            >
               Editar
             </Button>
             <Button
@@ -239,6 +262,7 @@ export const LeadDetailPage = () => {
               variant='outlined'
               color='error'
               onClick={() => setDeleteOpen(true)}
+              aria-label='Eliminar lead'
             >
               Eliminar
             </Button>
@@ -304,6 +328,7 @@ export const LeadDetailPage = () => {
         confirmLabel='Eliminar'
         cancelLabel='Cancelar'
         destructive
+        confirmLoading={deleting}
         onConfirm={() => void handleDeleteLead()}
         onCancel={() => setDeleteOpen(false)}
       />

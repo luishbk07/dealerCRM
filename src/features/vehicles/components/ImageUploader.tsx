@@ -67,6 +67,7 @@ export const ImageUploader = ({
           startIcon={<AddPhotoAlternateOutlinedIcon />}
           onClick={() => inputRef.current?.click()}
           disabled={uploading}
+          aria-label='Añadir imágenes al vehículo'
         >
           Añadir imágenes
         </Button>
@@ -110,6 +111,7 @@ export const ImageUploader = ({
                     <IconButton
                       size='small'
                       onClick={() => !image.isPrimary && onSetExistingPrimary(image)}
+                      aria-label={image.isPrimary ? 'Imagen principal' : 'Marcar como principal'}
                       sx={{
                         backgroundColor: 'rgba(15, 23, 42, 0.7)',
                         color: image.isPrimary ? '#FACC15' : 'white',
@@ -125,6 +127,7 @@ export const ImageUploader = ({
                     <IconButton
                       size='small'
                       onClick={() => onDeleteExisting(image)}
+                      aria-label='Eliminar imagen'
                       sx={{
                         backgroundColor: 'rgba(15, 23, 42, 0.7)',
                         color: 'white',

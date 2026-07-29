@@ -1,8 +1,8 @@
-import { Alert, Box, Button } from '@mui/material'
+import { Box, Button } from '@mui/material'
 import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 import Grid from '@mui/material/Grid2'
 import { useNavigate, useParams } from 'react-router-dom'
-import { EmptyState, LoadingState, PageHeader } from '@/shared/components'
+import { DetailPageSkeleton, EmptyState, ErrorAlert, PageHeader } from '@/shared/components'
 import { formatCurrency, formatDateTime } from '@/shared/utils/format'
 import { paths } from '@/app/routes/paths'
 import { useLead } from '@/features/leads/hooks/useLead'
@@ -21,15 +21,20 @@ export const SaleDetailPage = () => {
   const vehicleQuery = useVehicle(sale?.vehicleId ?? undefined)
 
   if (saleQuery.isLoading) {
-    return <LoadingState message='Cargando detalle de la venta…' />
+    return <DetailPageSkeleton />
   }
 
   if (saleQuery.isError) {
     return (
       <Box>
         <PageHeader title='Venta' />
-        <Alert severity='error'>No fue posible cargar la venta.</Alert>
-        <Button startIcon={<ArrowBackIcon />} onClick={() => navigate(paths.sales)} sx={{ mt: 2 }}>
+        <ErrorAlert error={saleQuery.error} onRetry={() => void saleQuery.refetch()} />
+        <Button
+          startIcon={<ArrowBackIcon />}
+          onClick={() => navigate(paths.sales)}
+          sx={{ mt: 2 }}
+          aria-label='Volver a ventas'
+        >
           Volver a ventas
         </Button>
       </Box>
@@ -44,7 +49,12 @@ export const SaleDetailPage = () => {
           title='Venta no encontrada'
           description='La venta que buscas no existe o ya no está disponible.'
           action={
-            <Button variant='contained' startIcon={<ArrowBackIcon />} onClick={() => navigate(paths.sales)}>
+            <Button
+              variant='contained'
+              startIcon={<ArrowBackIcon />}
+              onClick={() => navigate(paths.sales)}
+              aria-label='Volver a ventas'
+            >
               Volver a ventas
             </Button>
           }

@@ -54,6 +54,7 @@ export const QuickActionsCard = () => {
               onClick={action.onClick}
               fullWidth
               sx={{ justifyContent: 'flex-start', py: 1.1 }}
+              aria-label={action.label}
             >
               {action.label}
             </Button>

@@ -46,6 +46,8 @@ export const useSalesCatalog = () => {
     vehiclesById,
     leadsById,
     isLoading: vehiclesQuery.isLoading || leadsQuery.isLoading,
-    isError: vehiclesQuery.isError || leadsQuery.isError
+    isError: vehiclesQuery.isError || leadsQuery.isError,
+    error: vehiclesQuery.error ?? leadsQuery.error,
+    refetch: () => Promise.all([vehiclesQuery.refetch(), leadsQuery.refetch()])
   }
 }

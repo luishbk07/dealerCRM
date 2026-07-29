@@ -1,20 +1,22 @@
-import { Alert, Box, Fade, Stack } from '@mui/material'
+import { Box, Fade, Stack } from '@mui/material'
 import Grid from '@mui/material/Grid2'
-import { PageHeader } from '@/shared/components'
-import { isDev } from '@/shared/utils/environment'
+import { ErrorAlert, PageHeader } from '@/shared/components'
+import { useAuth } from '@/features/auth/context/AuthContext'
 import { useDashboardPage } from '../hooks/useDashboardPage'
 import { DashboardSummaryCards } from '../components/DashboardSummaryCards'
 import { DashboardSkeleton } from '../components/DashboardSkeleton'
 import { RecentLeadsList } from '../components/RecentLeadsList'
 import { PipelineSnapshot } from '../components/PipelineSnapshot'
 import { SalesTrendChart } from '../components/SalesTrendChart'
-import { DashboardEmptyBanner, QuickActionsCard } from '../components/QuickActionsCard'
+import { QuickActionsCard } from '../components/QuickActionsCard'
+import { WelcomeDashboard } from '../components/WelcomeDashboard'
 import { RecentActivityFeed } from '../components/RecentActivityFeed'
 import { PendingFollowUpsCard } from '../components/PendingFollowUpsCard'
 import { OverdueTasksBanner } from '../components/OverdueTasksBanner'
 import { countPendingLeads } from '../utils/dashboardMetrics'
 
 export const DashboardPage = () => {
+  const { dealer } = useAuth()
   const {
     snapshot,
     snapshotLoading,
@@ -30,7 +32,8 @@ export const DashboardPage = () => {
     pendingTasks,
     pendingTasksLoading,
     pendingTasksError,
-    overdueTaskCount
+    overdueTaskCount,
+    refetchSnapshot
   } = useDashboardPage()
 
   if (snapshotLoading) {
@@ -39,15 +42,19 @@ export const DashboardPage = () => {
 
   if (snapshotError || !snapshot) {
     return (
-      <Alert severity='error'>
-        No pudimos cargar tu dashboard. Por favor contacta al soporte.
-        {isDev && snapshotError ? ` ${(snapshotError as Error).message}` : ''}
-      </Alert>
+      <Box>
+        <PageHeader title='Dashboard' />
+        <ErrorAlert error={snapshotError} onRetry={() => void refetchSnapshot?.()} />
+      </Box>
     )
   }
 
   const { stats, monthlySales, leadConversion } = snapshot
   const pendingLeads = countPendingLeads(leadConversion)
+  const isEmptyDealer =
+    stats.totalVehicles === 0 &&
+    stats.totalLeads === 0 &&
+    stats.monthlySalesCount === 0
 
   return (
     <Fade in timeout={300}>
@@ -57,14 +64,14 @@ export const DashboardPage = () => {
           subtitle='Resumen rápido de tu operación de hoy'
         />
 
-        <DashboardEmptyBanner
-          showNoVehicles={stats.totalVehicles === 0}
-          showNoLeads={stats.totalLeads === 0}
-        />
-
-        <OverdueTasksBanner show={overdueTaskCount > 0} />
-
-        <DashboardSummaryCards stats={stats} pendingLeads={pendingLeads} />
+        {isEmptyDealer ? (
+          <WelcomeDashboard dealerName={dealer?.name} />
+        ) : (
+          <>
+            <OverdueTasksBanner show={overdueTaskCount > 0} />
+            <DashboardSummaryCards stats={stats} pendingLeads={pendingLeads} />
+          </>
+        )}
 
         <Box sx={{ order: { xs: 2, lg: 4 } }}>
           <RecentActivityFeed
@@ -96,14 +103,16 @@ export const DashboardPage = () => {
           </Grid>
         </Grid>
 
-        <Grid container spacing={2.5} sx={{ order: { xs: 4, lg: 3 } }}>
-          <Grid size={{ xs: 12, lg: 7 }}>
-            <SalesTrendChart data={monthlySales} />
+        {!isEmptyDealer ? (
+          <Grid container spacing={2.5} sx={{ order: { xs: 4, lg: 3 } }}>
+            <Grid size={{ xs: 12, lg: 7 }}>
+              <SalesTrendChart data={monthlySales} />
+            </Grid>
+            <Grid size={{ xs: 12, lg: 5 }}>
+              <PipelineSnapshot data={leadConversion} />
+            </Grid>
           </Grid>
-          <Grid size={{ xs: 12, lg: 5 }}>
-            <PipelineSnapshot data={leadConversion} />
-          </Grid>
-        </Grid>
+        ) : null}
       </Box>
     </Fade>
   )

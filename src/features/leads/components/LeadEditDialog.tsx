@@ -61,6 +61,7 @@ export const LeadEditDialog = ({ open, lead, vehicles, loading, onClose, onSubmi
   }
 
   const handleClose = () => {
+    if (loading) return
     setErrors({})
     onClose()
   }
@@ -150,11 +151,11 @@ export const LeadEditDialog = ({ open, lead, vehicles, loading, onClose, onSubmi
         </Stack>
       </DialogContent>
       <DialogActions>
-        <Button onClick={handleClose} color='inherit'>
+        <Button onClick={handleClose} color='inherit' disabled={loading}>
           Cancelar
         </Button>
         <Button variant='contained' onClick={() => void handleSubmit()} disabled={loading || !lead}>
-          Guardar cambios
+          {loading ? 'Guardando…' : 'Guardar cambios'}
         </Button>
       </DialogActions>
     </Dialog>

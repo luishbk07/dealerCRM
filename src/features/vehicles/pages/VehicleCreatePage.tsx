@@ -3,6 +3,7 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 import { useNavigate } from 'react-router-dom'
 import { PageHeader } from '@/shared/components'
 import { useToast } from '@/shared/hooks/useToast'
+import { USER_MESSAGES, getUserFriendlyError } from '@/shared/utils/userMessages'
 import { useAuth } from '@/features/auth/context/AuthContext'
 import { paths } from '@/app/routes/paths'
 import { useVehicleMutations } from '../hooks/useVehicleMutations'
@@ -17,11 +18,11 @@ export const VehicleCreatePage = () => {
 
   const handleSubmit = async (payload: VehicleFormPayload, images: VehicleImageUpload[]) => {
     try {
-      const created = await create.mutateAsync({ payload, images })
-      showToast(`${created.brand} ${created.model} publicado correctamente`)
+      await create.mutateAsync({ payload, images })
+      showToast(USER_MESSAGES.vehicleCreated)
       navigate(paths.vehicles)
     } catch (error) {
-      showToast((error as Error).message, 'error')
+      showToast(getUserFriendlyError(error, USER_MESSAGES.saveFailed), 'error')
     }
   }
 

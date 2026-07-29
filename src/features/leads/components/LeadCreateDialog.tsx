@@ -49,6 +49,7 @@ export const LeadCreateDialog = ({ open, vehicles, loading, onClose, onSubmit }:
   }
 
   const handleClose = () => {
+    if (loading) return
     resetForm()
     onClose()
   }
@@ -135,11 +136,11 @@ export const LeadCreateDialog = ({ open, vehicles, loading, onClose, onSubmit }:
         </Stack>
       </DialogContent>
       <DialogActions>
-        <Button onClick={handleClose} color='inherit'>
+        <Button onClick={handleClose} color='inherit' disabled={loading}>
           Cancelar
         </Button>
         <Button variant='contained' onClick={() => void handleSubmit()} disabled={loading || !dealer?.id}>
-          Crear lead
+          {loading ? 'Creando…' : 'Crear lead'}
         </Button>
       </DialogActions>
     </Dialog>
