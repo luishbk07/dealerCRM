@@ -9,7 +9,8 @@ import SendOutlinedIcon from '@mui/icons-material/SendOutlined'
 import DirectionsCarFilledIcon from '@mui/icons-material/DirectionsCarFilled'
 import { useState, type ReactNode } from 'react'
 import { useParams } from 'react-router-dom'
-import { LoadingState } from '@/shared/components'
+import { ErrorAlert, LoadingState } from '@/shared/components'
+import { getUserFriendlyError, USER_MESSAGES } from '@/shared/utils/userMessages'
 import type { VehicleWithImages } from '@/shared/types'
 import { formatCurrency, formatNumber } from '@/shared/utils/format'
 import { useToast } from '@/shared/hooks/useToast'
@@ -137,7 +138,7 @@ const RequestInfoForm = ({ vehicle }: RequestInfoFormProps) => {
       setDone(true)
       showToast('¡Solicitud enviada! El concesionario te contactará pronto.')
     } catch (err) {
-      showToast((err as Error).message, 'error')
+      showToast(getUserFriendlyError(err, USER_MESSAGES.saveFailed), 'error')
     } finally {
       setSubmitting(false)
     }
@@ -173,7 +174,7 @@ export const PublicVehiclePage = () => {
   if (vehicleQuery.isError || !vehicleQuery.data) {
     return (
       <Container sx={{ py: 8 }}>
-        <Alert severity='error'>{(vehicleQuery.error as Error | undefined)?.message ?? 'Vehículo no disponible'}</Alert>
+        <ErrorAlert error={vehicleQuery.error} message='Vehículo no disponible.' />
       </Container>
     )
   }

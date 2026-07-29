@@ -82,6 +82,8 @@ export const ShareVehicleDialog = ({ vehicle, dealerSlug, open, onClose }: Share
     try {
       window.open(url, '_blank', 'noopener,noreferrer')
       await recordShare(channel)
+    } catch {
+      showToast('No se pudo registrar el compartido.', 'error')
     } finally {
       setBusyChannel(null)
     }

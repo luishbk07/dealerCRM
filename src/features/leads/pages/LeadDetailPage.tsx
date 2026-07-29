@@ -39,6 +39,8 @@ export const LeadDetailPage = () => {
   const [editOpen, setEditOpen] = useState(false)
   const [deleteOpen, setDeleteOpen] = useState(false)
   const [deleting, setDeleting] = useState(false)
+  const [confirmSoldOpen, setConfirmSoldOpen] = useState(false)
+  const [pendingEditValues, setPendingEditValues] = useState<LeadEditFormValues | null>(null)
 
   const returnPath = getReturnPath(location.state, paths.leads)
   const { dealer } = useAuth()
@@ -114,6 +116,15 @@ export const LeadDetailPage = () => {
   }
 
   const handleChangeStatus = async (status: LeadStatus) => {
+    if (status === lead.status) return
+    if (status === LEAD_STATUS_SOLD && lead.status !== LEAD_STATUS_SOLD) {
+      setConfirmSoldOpen(true)
+      return
+    }
+    await applyStatusChange(status)
+  }
+
+  const applyStatusChange = async (status: LeadStatus) => {
     setUpdatingStatus(true)
     try {
       await updateStatus.mutateAsync({ leadId: lead.id, status })
@@ -153,6 +164,16 @@ export const LeadDetailPage = () => {
 
   const handleEditLead = async (values: LeadEditFormValues) => {
     const convertingToSold = values.status === LEAD_STATUS_SOLD && lead.status !== LEAD_STATUS_SOLD
+    if (convertingToSold) {
+      setPendingEditValues(values)
+      setConfirmSoldOpen(true)
+      return
+    }
+    await applyEditLead(values)
+  }
+
+  const applyEditLead = async (values: LeadEditFormValues) => {
+    const convertingToSold = values.status === LEAD_STATUS_SOLD && lead.status !== LEAD_STATUS_SOLD
     try {
       await updateLead.mutateAsync({
         leadId: lead.id,
@@ -167,6 +188,7 @@ export const LeadDetailPage = () => {
         }
       })
       setEditOpen(false)
+      setPendingEditValues(null)
       if (convertingToSold) {
         showToast(USER_MESSAGES.saleRegistered)
       } else {
@@ -235,6 +257,8 @@ export const LeadDetailPage = () => {
     }
   }
 
+  const isBusy = updatingStatus || deleting || updateLead.isPending || deleteLead.isPending
+
   return (
     <Box>
       <PageHeader
@@ -253,6 +277,7 @@ export const LeadDetailPage = () => {
               startIcon={<EditOutlinedIcon />}
               variant='outlined'
               onClick={() => setEditOpen(true)}
+              disabled={isBusy}
               aria-label='Editar lead'
             >
               Editar
@@ -262,6 +287,7 @@ export const LeadDetailPage = () => {
               variant='outlined'
               color='error'
               onClick={() => setDeleteOpen(true)}
+              disabled={isBusy}
               aria-label='Eliminar lead'
             >
               Eliminar
@@ -319,6 +345,27 @@ export const LeadDetailPage = () => {
         loading={updateLead.isPending}
         onClose={() => setEditOpen(false)}
         onSubmit={handleEditLead}
+      />
+
+      <ConfirmDialog
+        open={confirmSoldOpen}
+        title='Registrar venta'
+        description='Al marcar este lead como vendido se registrará una venta. ¿Deseas continuar?'
+        confirmLabel='Registrar venta'
+        confirmLoading={updatingStatus || updateLead.isPending}
+        onConfirm={() => {
+          setConfirmSoldOpen(false)
+          if (pendingEditValues) {
+            void applyEditLead(pendingEditValues)
+            return
+          }
+          void applyStatusChange(LEAD_STATUS_SOLD)
+        }}
+        onCancel={() => {
+          if (updatingStatus || updateLead.isPending) return
+          setConfirmSoldOpen(false)
+          setPendingEditValues(null)
+        }}
       />
 
       <ConfirmDialog

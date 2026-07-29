@@ -23,6 +23,7 @@ interface ImageUploaderProps {
   onDeleteExisting?: (image: VehicleImage) => void
   onSetExistingPrimary?: (image: VehicleImage) => void
   uploading?: boolean
+  actionsDisabled?: boolean
 }
 
 export const ImageUploader = ({
@@ -33,9 +34,11 @@ export const ImageUploader = ({
   onTogglePendingPrimary,
   onDeleteExisting,
   onSetExistingPrimary,
-  uploading
+  uploading,
+  actionsDisabled
 }: ImageUploaderProps) => {
   const inputRef = useRef<HTMLInputElement | null>(null)
+  const disableActions = Boolean(uploading || actionsDisabled)
 
   const handleFileSelect = (event: ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(event.target.files ?? [])
@@ -111,6 +114,7 @@ export const ImageUploader = ({
                     <IconButton
                       size='small'
                       onClick={() => !image.isPrimary && onSetExistingPrimary(image)}
+                      disabled={disableActions}
                       aria-label={image.isPrimary ? 'Imagen principal' : 'Marcar como principal'}
                       sx={{
                         backgroundColor: 'rgba(15, 23, 42, 0.7)',
@@ -127,6 +131,7 @@ export const ImageUploader = ({
                     <IconButton
                       size='small'
                       onClick={() => onDeleteExisting(image)}
+                      disabled={disableActions}
                       aria-label='Eliminar imagen'
                       sx={{
                         backgroundColor: 'rgba(15, 23, 42, 0.7)',

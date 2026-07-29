@@ -37,7 +37,7 @@ export const LeadSidePanel = ({ lead, notes, vehicle, onChangeStatus, onAddNote 
   }
 
   const handleStatusChange = async (status: string) => {
-    if (!isLeadStatus(status)) return
+    if (!isLeadStatus(status) || status === lead.status) return
     setUpdatingStatus(true)
     try {
       await onChangeStatus(status)

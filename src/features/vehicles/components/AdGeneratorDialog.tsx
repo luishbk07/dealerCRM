@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react'
 import type { Vehicle } from '@/shared/types'
 import { adGeneratorService, type GeneratedAd } from '@/shared/services'
 import { useToast } from '@/shared/hooks/useToast'
+import { getUserFriendlyError, USER_MESSAGES } from '@/shared/utils/userMessages'
 
 interface AdGeneratorDialogProps {
   vehicle: Vehicle | null
@@ -41,8 +42,8 @@ export const AdGeneratorDialog = ({ vehicle, open, onClose }: AdGeneratorDialogP
       .then((generated) => {
         if (!cancelled) setResult(generated)
       })
-      .catch((err: Error) => {
-        if (!cancelled) setError(err.message)
+      .catch((err: unknown) => {
+        if (!cancelled) setError(getUserFriendlyError(err, USER_MESSAGES.loadFailed))
       })
       .finally(() => {
         if (!cancelled) setLoading(false)
@@ -64,7 +65,7 @@ export const AdGeneratorDialog = ({ vehicle, open, onClose }: AdGeneratorDialogP
   const currentText = result ? result[activeTab] : ''
 
   return (
-    <Dialog open={open} onClose={onClose} fullWidth maxWidth='md'>
+    <Dialog open={open} onClose={loading ? undefined : onClose} fullWidth maxWidth='md'>
       <DialogTitle sx={{ pr: 6 }}>
         <Stack>
           <Typography variant='h6'>Generador de anuncios con IA</Typography>
@@ -74,7 +75,7 @@ export const AdGeneratorDialog = ({ vehicle, open, onClose }: AdGeneratorDialogP
             </Typography>
           ) : null}
         </Stack>
-        <IconButton onClick={onClose} sx={{ position: 'absolute', right: 12, top: 12 }} aria-label='Cerrar'>
+        <IconButton onClick={onClose} disabled={loading} sx={{ position: 'absolute', right: 12, top: 12 }} aria-label='Cerrar'>
           <CloseIcon />
         </IconButton>
       </DialogTitle>

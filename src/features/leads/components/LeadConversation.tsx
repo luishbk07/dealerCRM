@@ -22,7 +22,7 @@ export const LeadConversation = ({ lead, messages, onSendMessage }: LeadConversa
 
   const handleSend = async () => {
     const trimmed = draft.trim()
-    if (!trimmed) return
+    if (!trimmed || sending) return
     setSending(true)
     try {
       await onSendMessage(trimmed)
@@ -101,8 +101,8 @@ export const LeadConversation = ({ lead, messages, onSendMessage }: LeadConversa
               }
             }}
           />
-          <Button variant='contained' onClick={handleSend} disabled={sending || !draft.trim()} endIcon={<SendIcon />}>
-            Enviar
+          <Button variant='contained' onClick={() => void handleSend()} disabled={sending || !draft.trim()} endIcon={<SendIcon />} aria-label='Enviar mensaje'>
+            {sending ? 'Enviando…' : 'Enviar'}
           </Button>
         </Stack>
       </Box>

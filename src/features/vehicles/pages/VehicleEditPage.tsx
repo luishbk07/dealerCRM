@@ -1,4 +1,4 @@
-import { Alert, Box, Button, Stack } from '@mui/material'
+import { Box, Button, Stack } from '@mui/material'
 import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 import AutoAwesomeOutlinedIcon from '@mui/icons-material/AutoAwesomeOutlined'
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline'
@@ -10,6 +10,7 @@ import { useAuth } from '@/features/auth/context/AuthContext'
 import {
   ConfirmDialog,
   DetailPageSkeleton,
+  EmptyState,
   ErrorAlert,
   PageHeader
 } from '@/shared/components'
@@ -41,6 +42,7 @@ export const VehicleEditPage = () => {
   const [deleting, setDeleting] = useState(false)
 
   const returnPath = getReturnPath(location.state, paths.vehicles)
+  const isFormBusy = update.isPending || deleting || deleteImage.isPending || setPrimary.isPending
 
   const handleSubmit = async (payload: VehicleFormPayload, images: VehicleImageUpload[]) => {
     try {
@@ -77,6 +79,7 @@ export const VehicleEditPage = () => {
   }
 
   const handleSetPrimary = async (image: VehicleImage) => {
+    if (setPrimary.isPending || image.isPrimary) return
     try {
       await setPrimary.mutateAsync(image)
       showToast('Imagen principal actualizada.')
@@ -96,7 +99,25 @@ export const VehicleEditPage = () => {
 
   const vehicle = vehicleQuery.data
   if (!vehicle) {
-    return <Alert severity='warning'>Vehículo no encontrado.</Alert>
+    return (
+      <Box>
+        <PageHeader title='Vehículo' />
+        <EmptyState
+          title='Vehículo no encontrado'
+          description='El vehículo que buscas no existe o ya no está disponible.'
+          action={
+            <Button
+              variant='contained'
+              startIcon={<ArrowBackIcon />}
+              onClick={() => navigate(returnPath)}
+              aria-label='Volver al inventario'
+            >
+              Volver al inventario
+            </Button>
+          }
+        />
+      </Box>
+    )
   }
 
   return (
@@ -106,6 +127,7 @@ export const VehicleEditPage = () => {
           variant='text'
           startIcon={<ArrowBackIcon />}
           onClick={() => navigate(returnPath)}
+          disabled={isFormBusy}
           sx={{ alignSelf: 'flex-start', color: 'text.secondary' }}
           aria-label='Volver al inventario'
         >
@@ -121,6 +143,7 @@ export const VehicleEditPage = () => {
               variant='outlined'
               startIcon={<ShareOutlinedIcon />}
               onClick={() => setShareOpen(true)}
+              disabled={isFormBusy}
               aria-label='Compartir vehículo'
             >
               Compartir
@@ -129,6 +152,7 @@ export const VehicleEditPage = () => {
               variant='outlined'
               startIcon={<OpenInNewOutlinedIcon />}
               onClick={() => window.open(paths.vehiclePublic(vehicle.id), '_blank', 'noopener')}
+              disabled={isFormBusy}
               aria-label='Ver página pública del vehículo'
             >
               Ver página pública
@@ -137,6 +161,7 @@ export const VehicleEditPage = () => {
               variant='contained'
               startIcon={<AutoAwesomeOutlinedIcon />}
               onClick={() => setAdOpen(true)}
+              disabled={isFormBusy}
               aria-label='Generar anuncio del vehículo'
             >
               Generar anuncio
@@ -146,6 +171,7 @@ export const VehicleEditPage = () => {
               color='error'
               startIcon={<DeleteOutlineIcon />}
               onClick={() => setConfirmDelete(true)}
+              disabled={isFormBusy}
               aria-label='Eliminar vehículo'
             >
               Eliminar
@@ -157,6 +183,7 @@ export const VehicleEditPage = () => {
       <VehicleForm
         initial={vehicle}
         submitting={update.isPending}
+        imageActionsDisabled={deleteImage.isPending || setPrimary.isPending}
         onSubmit={handleSubmit}
         onCancel={() => navigate(returnPath)}
         onDeleteImage={(image) => setImageToDelete(image)}
@@ -179,7 +206,7 @@ export const VehicleEditPage = () => {
         destructive
         confirmLoading={deleting}
         onConfirm={() => void handleDelete()}
-        onCancel={() => setConfirmDelete(false)}
+        onCancel={() => !deleting && setConfirmDelete(false)}
       />
 
       <ConfirmDialog
@@ -190,7 +217,7 @@ export const VehicleEditPage = () => {
         destructive
         confirmLoading={deleteImage.isPending}
         onConfirm={() => void handleDeleteImage()}
-        onCancel={() => setImageToDelete(null)}
+        onCancel={() => !deleteImage.isPending && setImageToDelete(null)}
       />
     </Box>
   )

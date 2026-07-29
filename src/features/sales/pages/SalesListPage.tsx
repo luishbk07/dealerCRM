@@ -6,6 +6,7 @@ import { EmptyState, ErrorAlert, KpiCard, PageHeader, SalesListSkeleton } from '
 import { useDebouncedValue } from '@/shared/hooks/useDebouncedValue'
 import { formatCurrency } from '@/shared/utils/format'
 import { paths } from '@/app/routes/paths'
+import { withListReturn } from '@/shared/utils/listNavigation'
 import PaidOutlinedIcon from '@mui/icons-material/PaidOutlined'
 import ReceiptLongOutlinedIcon from '@mui/icons-material/ReceiptLongOutlined'
 import TrendingUpOutlinedIcon from '@mui/icons-material/TrendingUpOutlined'
@@ -170,7 +171,7 @@ export const SalesListPage = () => {
                 sales={items}
                 leadsById={catalog.leadsById}
                 vehiclesById={catalog.vehiclesById}
-                onSelect={(sale) => navigate(paths.saleDetail(sale.id))}
+                onSelect={(sale) => navigate(paths.saleDetail(sale.id), withListReturn(paths.sales))}
               />
             </Box>
             {totalPages > 1 ? (

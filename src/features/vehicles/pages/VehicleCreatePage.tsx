@@ -33,7 +33,9 @@ export const VehicleCreatePage = () => {
           variant='text'
           startIcon={<ArrowBackIcon />}
           onClick={() => navigate(paths.vehicles)}
+          disabled={create.isPending}
           sx={{ alignSelf: 'flex-start', color: 'text.secondary' }}
+          aria-label='Volver al inventario'
         >
           Volver al inventario
         </Button>

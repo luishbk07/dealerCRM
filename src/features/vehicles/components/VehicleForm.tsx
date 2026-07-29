@@ -28,6 +28,7 @@ interface VehicleFormProps {
   onCancel: () => void
   onDeleteImage?: (image: VehicleImage) => Promise<void> | void
   onSetPrimaryImage?: (image: VehicleImage) => Promise<void> | void
+  imageActionsDisabled?: boolean
 }
 
 const STATUS_OPTIONS: { value: string, label: string }[] = [
@@ -46,7 +47,8 @@ export const VehicleForm = ({
   onSubmit,
   onCancel,
   onDeleteImage,
-  onSetPrimaryImage
+  onSetPrimaryImage,
+  imageActionsDisabled
 }: VehicleFormProps) => {
   const form = useVehicleForm(initial)
   const featuredCountQuery = useFeaturedVehicleCount(initial?.id)
@@ -285,6 +287,7 @@ export const VehicleForm = ({
               onDeleteExisting={onDeleteImage}
               onSetExistingPrimary={onSetPrimaryImage}
               uploading={submitting}
+              actionsDisabled={imageActionsDisabled}
             />
 
             <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} justifyContent='flex-end'>

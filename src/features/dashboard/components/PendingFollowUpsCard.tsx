@@ -16,6 +16,7 @@ import { useNavigate } from 'react-router-dom'
 import type { PendingLeadTask } from '@/shared/types'
 import { formatDateTime } from '@/shared/utils/format'
 import { paths } from '@/app/routes/paths'
+import { withListReturn } from '@/shared/utils/listNavigation'
 import { getLeadTaskStatus, LEAD_TASK_STATUS_LABELS } from '@/features/leads/utils/leadTaskUtils'
 
 interface PendingFollowUpsCardProps {
@@ -77,7 +78,7 @@ export const PendingFollowUpsCard = ({ tasks, isLoading, isError }: PendingFollo
           return (
             <Box key={task.id}>
               <ListItemButton
-                onClick={() => navigate(paths.leadDetail(task.leadId))}
+                onClick={() => navigate(paths.leadDetail(task.leadId), withListReturn(paths.dashboard))}
                 sx={{ py: 1.75, px: 3 }}
                 aria-label={`Ver lead ${task.leadName ?? 'sin nombre'}`}
               >

@@ -8,6 +8,7 @@ import { useAuth } from '../context/AuthContext'
 import { paths } from '@/app/routes/paths'
 import { AuthCardShell } from '../components/AuthCardShell'
 import { validateRegisterForm, type RegisterFormErrors, type RegisterFormValues } from '../utils/validation'
+import { getUserFriendlyError } from '@/shared/utils/userMessages'
 
 const INITIAL_VALUES: RegisterFormValues = {
   fullName: '',
@@ -60,7 +61,7 @@ export const RegisterPage = () => {
 
       navigate(paths.onboarding, { replace: true })
     } catch (err) {
-      setSubmitError((err as Error).message)
+      setSubmitError(getUserFriendlyError(err, 'No se pudo crear la cuenta. Intenta nuevamente.'))
     } finally {
       setSubmitting(false)
     }
@@ -79,7 +80,7 @@ export const RegisterPage = () => {
         </>
       }
     >
-      {configError ? <Alert severity='warning'>{configError}</Alert> : null}
+      {configError ? <Alert severity='warning'>{getUserFriendlyError(configError, 'Configura Supabase para continuar.')}</Alert> : null}
       {submitError ? <Alert severity='error'>{submitError}</Alert> : null}
       {emailNotice ? <Alert severity='success'>{emailNotice}</Alert> : null}
 

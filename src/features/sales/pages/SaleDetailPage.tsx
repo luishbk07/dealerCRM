@@ -1,10 +1,11 @@
 import { Box, Button } from '@mui/material'
 import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 import Grid from '@mui/material/Grid2'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import { DetailPageSkeleton, EmptyState, ErrorAlert, PageHeader } from '@/shared/components'
 import { formatCurrency, formatDateTime } from '@/shared/utils/format'
 import { paths } from '@/app/routes/paths'
+import { getReturnPath } from '@/shared/utils/listNavigation'
 import { useLead } from '@/features/leads/hooks/useLead'
 import { useVehicle } from '@/features/vehicles/hooks/useVehicle'
 import { SaleDetailInfo } from '../components/SaleDetailInfo'
@@ -12,7 +13,9 @@ import { useSale } from '../hooks/useSale'
 
 export const SaleDetailPage = () => {
   const navigate = useNavigate()
+  const location = useLocation()
   const { id } = useParams<{ id: string }>()
+  const returnPath = getReturnPath(location.state, paths.sales)
 
   const saleQuery = useSale(id)
   const sale = saleQuery.data ?? null
@@ -31,7 +34,7 @@ export const SaleDetailPage = () => {
         <ErrorAlert error={saleQuery.error} onRetry={() => void saleQuery.refetch()} />
         <Button
           startIcon={<ArrowBackIcon />}
-          onClick={() => navigate(paths.sales)}
+          onClick={() => navigate(returnPath)}
           sx={{ mt: 2 }}
           aria-label='Volver a ventas'
         >
@@ -52,7 +55,7 @@ export const SaleDetailPage = () => {
             <Button
               variant='contained'
               startIcon={<ArrowBackIcon />}
-              onClick={() => navigate(paths.sales)}
+              onClick={() => navigate(returnPath)}
               aria-label='Volver a ventas'
             >
               Volver a ventas
@@ -71,7 +74,7 @@ export const SaleDetailPage = () => {
         actions={
           <Button
             startIcon={<ArrowBackIcon />}
-            onClick={() => navigate(paths.sales)}
+            onClick={() => navigate(returnPath)}
             aria-label='Volver a la lista de ventas'
           >
             Volver

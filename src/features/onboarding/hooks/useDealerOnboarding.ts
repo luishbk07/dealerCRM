@@ -9,6 +9,7 @@ import {
   type DealerOnboardingFormValues
 } from '../types/dealerOnboarding'
 import type { Dealer } from '@/shared/types'
+import { getUserFriendlyError, USER_MESSAGES } from '@/shared/utils/userMessages'
 
 interface UseDealerOnboardingResult {
   values: DealerOnboardingFormValues
@@ -54,7 +55,7 @@ export const useDealerOnboarding = (): UseDealerOnboardingResult => {
       await refreshDealer()
       return dealer
     } catch (err) {
-      setError((err as Error).message)
+      setError(getUserFriendlyError(err, USER_MESSAGES.saveFailed))
       return null
     } finally {
       setSubmitting(false)

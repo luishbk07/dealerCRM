@@ -24,10 +24,7 @@ export const DealerOnboardingPage = () => {
 
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault()
-    const dealer = await submit()
-    if (dealer) {
-      navigate(paths.dashboard, { replace: true })
-    }
+    await submit()
   }
 
   const handleSignOut = async () => {

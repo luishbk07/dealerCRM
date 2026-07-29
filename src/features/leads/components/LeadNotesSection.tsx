@@ -46,7 +46,7 @@ export const LeadNotesSection = ({ notes, onAddNote }: LeadNotesSectionProps) =>
           />
           <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
             <Button variant='contained' size='small' onClick={() => void handleAddNote()} disabled={savingNote || !noteDraft.trim()}>
-              Añadir nota
+              {savingNote ? 'Añadiendo…' : 'Añadir nota'}
             </Button>
           </Box>
           <Divider />

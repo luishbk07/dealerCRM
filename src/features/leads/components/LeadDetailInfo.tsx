@@ -31,7 +31,7 @@ export const LeadDetailInfo = ({ lead, vehicle, updatingStatus, onChangeStatus }
   const vehicleImage = vehicle && vehicle.images.length > 0 ? vehicleService.resolveImageUrl(vehicle.images[0]) : null
 
   const handleStatusChange = async (status: string) => {
-    if (!isLeadStatus(status)) return
+    if (!isLeadStatus(status) || status === lead.status) return
     await onChangeStatus(status)
   }
 

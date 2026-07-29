@@ -7,6 +7,7 @@ import { useAuth } from '../context/AuthContext'
 import { paths } from '@/app/routes/paths'
 import { AuthCardShell } from '../components/AuthCardShell'
 import { isValidEmail } from '../utils/validation'
+import { getUserFriendlyError } from '@/shared/utils/userMessages'
 
 interface LocationState {
   from?: { pathname: string }
@@ -44,7 +45,7 @@ export const LoginPage = () => {
       const target = (location.state as LocationState | undefined)?.from?.pathname ?? paths.dashboard
       navigate(target, { replace: true })
     } catch (err) {
-      setError((err as Error).message)
+      setError(getUserFriendlyError(err, 'No se pudo iniciar sesión. Intenta nuevamente.'))
     } finally {
       setSubmitting(false)
     }
@@ -63,7 +64,7 @@ export const LoginPage = () => {
         </>
       }
     >
-      {configError ? <Alert severity='warning'>{configError}</Alert> : null}
+      {configError ? <Alert severity='warning'>{getUserFriendlyError(configError, 'Configura Supabase para continuar.')}</Alert> : null}
       {error ? <Alert severity='error'>{error}</Alert> : null}
 
       <Box component='form' onSubmit={handleSubmit} noValidate>

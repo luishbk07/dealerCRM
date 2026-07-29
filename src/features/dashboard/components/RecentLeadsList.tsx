@@ -19,6 +19,7 @@ import type { Lead, Vehicle } from '@/shared/types'
 import { StatusChip } from '@/shared/components'
 import { formatRelative } from '@/shared/utils/format'
 import { paths } from '@/app/routes/paths'
+import { withListReturn } from '@/shared/utils/listNavigation'
 import { formatVehicleLabel } from '@/features/leads/utils/vehicleLabel'
 
 interface RecentLeadsListProps {
@@ -99,7 +100,7 @@ export const RecentLeadsList = ({ leads, vehicleById, totalLeads, isLoading, isE
           return (
             <Box key={lead.id}>
               <ListItemButton
-                onClick={() => navigate(paths.leadDetail(lead.id))}
+                onClick={() => navigate(paths.leadDetail(lead.id), withListReturn(paths.dashboard))}
                 sx={{
                   py: 1.75,
                   px: 3,
