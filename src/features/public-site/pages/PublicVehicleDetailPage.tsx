@@ -4,6 +4,7 @@ import LocalGasStationOutlinedIcon from '@mui/icons-material/LocalGasStationOutl
 import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined'
 import SpeedOutlinedIcon from '@mui/icons-material/SpeedOutlined'
 import CalendarMonthOutlinedIcon from '@mui/icons-material/CalendarMonthOutlined'
+import { buildPublicVehicleUrl } from '@/shared/utils/appUrl'
 import { useMemo, type ReactNode } from 'react'
 import { useParams } from 'react-router-dom'
 import { LoadingState } from '@/shared/components'
@@ -65,7 +66,7 @@ export const PublicVehicleDetailPage = () => {
 
   const shareUrl = useMemo(() => {
     if (!dealerSlug || !vehicleId) return ''
-    return `${window.location.origin}/d/${dealerSlug}/vehiculo/${vehicleId}`
+    return buildPublicVehicleUrl(dealerSlug, vehicleId)
   }, [dealerSlug, vehicleId])
 
   const pageMeta = useMemo(() => {

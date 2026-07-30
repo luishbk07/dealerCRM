@@ -12,6 +12,7 @@ import DirectionsCarFilledOutlinedIcon from '@mui/icons-material/DirectionsCarFi
 import type { Lead, Sale, VehicleWithImages } from '@/shared/types'
 import { formatCurrency, formatDateTime } from '@/shared/utils/format'
 import { paths } from '@/app/routes/paths'
+import { buildAbsoluteUrl } from '@/shared/utils/appUrl'
 import { vehicleService } from '@/features/vehicles/services/vehicleService'
 import { formatBuyerName } from '../utils/sortSales'
 
@@ -80,7 +81,7 @@ export const SaleDetailInfo = ({ sale, lead, vehicle }: SaleDetailInfoProps) => 
                 variant='outlined'
                 size='small'
                 startIcon={<OpenInNewOutlinedIcon />}
-                onClick={() => window.open(paths.leadDetail(lead.id), '_self')}
+                onClick={() => window.open(buildAbsoluteUrl(paths.leadDetail(lead.id)), '_self')}
               >
                 Ver lead
               </Button>
@@ -124,7 +125,7 @@ export const SaleDetailInfo = ({ sale, lead, vehicle }: SaleDetailInfoProps) => 
                   variant='outlined'
                   size='small'
                   startIcon={<OpenInNewOutlinedIcon />}
-                  onClick={() => window.open(paths.vehicleEdit(vehicle.id), '_self')}
+                  onClick={() => window.open(buildAbsoluteUrl(paths.vehicleEdit(vehicle.id)), '_self')}
                 >
                   Ver vehículo
                 </Button>
@@ -132,7 +133,7 @@ export const SaleDetailInfo = ({ sale, lead, vehicle }: SaleDetailInfoProps) => 
                   variant='text'
                   size='small'
                   startIcon={<OpenInNewOutlinedIcon />}
-                  onClick={() => window.open(paths.vehiclePublic(vehicle.id), '_blank', 'noopener,noreferrer')}
+                  onClick={() => window.open(buildAbsoluteUrl(paths.vehiclePublic(vehicle.id)), '_blank', 'noopener,noreferrer')}
                 >
                   Página pública
                 </Button>

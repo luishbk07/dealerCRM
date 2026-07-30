@@ -16,6 +16,7 @@ import {
 } from '@/shared/components'
 import { useToast } from '@/shared/hooks/useToast'
 import { paths } from '@/app/routes/paths'
+import { buildAbsoluteUrl } from '@/shared/utils/appUrl'
 import { getReturnPath } from '@/shared/utils/listNavigation'
 import { getUserFriendlyError, USER_MESSAGES } from '@/shared/utils/userMessages'
 import type { VehicleImage } from '@/shared/types'
@@ -151,7 +152,7 @@ export const VehicleEditPage = () => {
             <Button
               variant='outlined'
               startIcon={<OpenInNewOutlinedIcon />}
-              onClick={() => window.open(paths.vehiclePublic(vehicle.id), '_blank', 'noopener')}
+              onClick={() => window.open(buildAbsoluteUrl(paths.vehiclePublic(vehicle.id)), '_blank', 'noopener')}
               disabled={isFormBusy}
               aria-label='Ver página pública del vehículo'
             >

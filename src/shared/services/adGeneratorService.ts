@@ -1,4 +1,6 @@
 import type { Vehicle } from '@/shared/types'
+import { paths } from '@/app/routes/paths'
+import { buildAbsoluteUrl } from '@/shared/utils/appUrl'
 import { formatCurrency, formatNumber } from '@/shared/utils/format'
 
 const wait = (ms: number): Promise<void> => new Promise((resolve) => setTimeout(resolve, ms))
@@ -64,12 +66,11 @@ export interface AdGeneratorService {
 export const adGeneratorService: AdGeneratorService = {
   async generate(vehicle) {
     await wait(700)
-    const origin = typeof window !== 'undefined' ? window.location.origin : 'https://dealer-crm.app'
     return {
       facebook: buildFacebook(vehicle),
       instagram: buildInstagram(vehicle),
       marketplace: buildMarketplace(vehicle),
-      publicUrl: `${origin}/vehicles/${vehicle.id}/public`
+      publicUrl: buildAbsoluteUrl(paths.vehiclePublic(vehicle.id))
     }
   }
 }

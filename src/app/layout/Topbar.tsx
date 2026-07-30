@@ -6,6 +6,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import type { User } from '@/shared/types'
 import { useAuth } from '@/features/auth/context/AuthContext'
+import { buildPublicDealerUrl } from '@/shared/utils/appUrl'
 import { paths } from '@/app/routes/paths'
 import { SIDEBAR_WIDTH } from './Sidebar'
 import { ThemeModeToggle } from './ThemeModeToggle'
@@ -21,7 +22,7 @@ export const Topbar = ({ user, logoUrl, onToggleMobile }: TopbarProps) => {
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null)
   const { signOut, dealer } = useAuth()
   const navigate = useNavigate()
-  const publicSiteUrl = dealer?.slug ? paths.dealerPublic(dealer.slug) : null
+  const publicSiteUrl = dealer?.slug ? buildPublicDealerUrl(dealer.slug) : null
 
   const handleOpenPublicSite = () => {
     setAnchorEl(null)

@@ -6,6 +6,7 @@ import { useState } from 'react'
 import type { Lead, LeadNote, VehicleWithImages } from '@/shared/types'
 import { formatCurrency, formatDateTime } from '@/shared/utils/format'
 import { paths } from '@/app/routes/paths'
+import { buildAbsoluteUrl } from '@/shared/utils/appUrl'
 import { vehicleService } from '@/features/vehicles/services/vehicleService'
 
 import { LEAD_STATUS_SELECT_OPTIONS, isLeadStatus } from '@/modules/leads/constants/leadStatus'
@@ -129,7 +130,7 @@ export const LeadSidePanel = ({ lead, notes, vehicle, onChangeStatus, onAddNote 
                 variant='outlined'
                 size='small'
                 startIcon={<OpenInNewOutlinedIcon />}
-                onClick={() => window.open(paths.vehiclePublic(vehicle.id), '_blank', 'noopener')}
+                onClick={() => window.open(buildAbsoluteUrl(paths.vehiclePublic(vehicle.id)), '_blank', 'noopener')}
               >
                 Ver página pública
               </Button>

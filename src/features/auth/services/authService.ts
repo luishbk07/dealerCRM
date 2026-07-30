@@ -1,4 +1,5 @@
 import type { Session, User as SupabaseUser } from '@supabase/supabase-js'
+import { buildAbsoluteUrl } from '@/shared/utils/appUrl'
 import { supabase } from '@/shared/services/supabase'
 import type { User } from '@/shared/types'
 
@@ -52,7 +53,7 @@ export const authService: AuthService = {
       password,
       options: {
         data: { full_name: fullName },
-        emailRedirectTo: typeof window !== 'undefined' ? window.location.origin : undefined
+        emailRedirectTo: typeof window !== 'undefined' ? buildAbsoluteUrl('/login') : undefined
       }
     })
     if (error) throw normalizeError(error.message)

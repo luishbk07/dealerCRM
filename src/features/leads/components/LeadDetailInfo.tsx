@@ -14,6 +14,7 @@ import type { Lead, VehicleWithImages } from '@/shared/types'
 import { StatusChip } from '@/shared/components'
 import { formatCurrency, formatDateTime } from '@/shared/utils/format'
 import { paths } from '@/app/routes/paths'
+import { buildAbsoluteUrl } from '@/shared/utils/appUrl'
 import { vehicleService } from '@/features/vehicles/services/vehicleService'
 import { LEAD_STATUS_SELECT_OPTIONS, isLeadStatus } from '@/modules/leads/constants/leadStatus'
 import type { LeadStatus } from '@/modules/leads/types'
@@ -151,7 +152,7 @@ export const LeadDetailInfo = ({ lead, vehicle, updatingStatus, onChangeStatus }
                 variant='outlined'
                 size='small'
                 startIcon={<OpenInNewOutlinedIcon />}
-                onClick={() => window.open(paths.vehiclePublic(vehicle.id), '_blank', 'noopener,noreferrer')}
+                onClick={() => window.open(buildAbsoluteUrl(paths.vehiclePublic(vehicle.id)), '_blank', 'noopener,noreferrer')}
               >
                 Ver página pública
               </Button>
