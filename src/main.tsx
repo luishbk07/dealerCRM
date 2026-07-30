@@ -1,9 +1,9 @@
 import { StrictMode, lazy, Suspense } from 'react'
 import { createRoot } from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
-import { ThemeProvider, CssBaseline } from '@mui/material'
 import { QueryClientProvider } from '@tanstack/react-query'
-import { theme } from '@/app/theme'
+import { DealerThemeProvider } from '@/app/DealerThemeProvider'
+import { ThemeModePreferenceProvider } from '@/app/ThemeModePreferenceContext'
 import { queryClient } from '@/app/queryClient'
 import { AuthProvider } from '@/features/auth/context/AuthContext'
 import { App } from '@/app/App'
@@ -27,15 +27,17 @@ if (!container) {
 createRoot(container).render(
   <StrictMode>
     <ErrorBoundary>
-      <ThemeProvider theme={theme}>
-        <CssBaseline />
-        <BrowserRouter basename={import.meta.env.BASE_URL}>
-          <QueryClientProvider client={queryClient}>
-            <AuthProvider>
-              <OfflineBanner>
-                <App />
-              </OfflineBanner>
-            </AuthProvider>
+      <BrowserRouter basename={import.meta.env.BASE_URL}>
+        <QueryClientProvider client={queryClient}>
+          <AuthProvider>
+            <ThemeModePreferenceProvider>
+              <DealerThemeProvider>
+                <OfflineBanner>
+                  <App />
+                </OfflineBanner>
+              </DealerThemeProvider>
+            </ThemeModePreferenceProvider>
+          </AuthProvider>
             {ReactQueryDevtools ? (
               <Suspense fallback={null}>
                 <ReactQueryDevtools initialIsOpen={false} buttonPosition='bottom-left' />
@@ -43,7 +45,6 @@ createRoot(container).render(
             ) : null}
           </QueryClientProvider>
         </BrowserRouter>
-      </ThemeProvider>
     </ErrorBoundary>
   </StrictMode>
 )

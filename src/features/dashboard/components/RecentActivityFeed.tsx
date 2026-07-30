@@ -20,7 +20,8 @@ import {
   Skeleton,
   Stack,
   Typography,
-  Alert
+  Alert,
+  useTheme
 } from '@mui/material'
 import type { ReactNode } from 'react'
 import { formatRelative } from '@/shared/utils/format'
@@ -51,26 +52,31 @@ const ACTIVITY_ICONS: Record<ActivityAction, ReactNode> = {
   banner_updated: <ImageOutlinedIcon fontSize='small' />
 }
 
-const ACTIVITY_COLORS: Record<ActivityAction, string> = {
-  vehicle_created: '#2563EB',
-  vehicle_updated: '#0EA5E9',
-  vehicle_deleted: '#EF4444',
-  vehicle_shared: '#6366F1',
-  vehicle_featured: '#F59E0B',
-  vehicle_unfeatured: '#94A3B8',
-  lead_created: '#0EA5E9',
-  lead_updated: '#8B5CF6',
-  lead_status_changed: '#8B5CF6',
-  lead_task_created: '#0EA5E9',
-  lead_task_completed: '#10B981',
-  lead_task_deleted: '#EF4444',
-  sale_created: '#F59E0B',
-  dealer_updated: '#64748B',
-  logo_updated: '#10B981',
-  banner_updated: '#10B981'
+const useActivityColors = (): Record<ActivityAction, string> => {
+  const theme = useTheme()
+  const { primary, info, secondary, success, warning, error, text } = theme.palette
+
+  return {
+    vehicle_created: primary.main,
+    vehicle_updated: info.main,
+    vehicle_deleted: error.main,
+    vehicle_shared: secondary.main,
+    vehicle_featured: warning.main,
+    vehicle_unfeatured: text.disabled,
+    lead_created: info.main,
+    lead_updated: secondary.main,
+    lead_status_changed: secondary.main,
+    lead_task_created: info.main,
+    lead_task_completed: success.main,
+    lead_task_deleted: error.main,
+    sale_created: warning.main,
+    dealer_updated: text.secondary,
+    logo_updated: success.main,
+    banner_updated: success.main
+  }
 }
 
-const ActivityIcon = ({ action }: { action: ActivityAction }) => (
+const ActivityIcon = ({ action, color }: { action: ActivityAction, color: string }) => (
   <Box
     sx={{
       width: 36,
@@ -80,8 +86,8 @@ const ActivityIcon = ({ action }: { action: ActivityAction }) => (
       alignItems: 'center',
       justifyContent: 'center',
       flexShrink: 0,
-      backgroundColor: `${ACTIVITY_COLORS[action]}1A`,
-      color: ACTIVITY_COLORS[action]
+      backgroundColor: `${color}1A`,
+      color
     }}
   >
     {ACTIVITY_ICONS[action]}
@@ -103,6 +109,8 @@ const LoadingBody = () => (
 )
 
 export const RecentActivityFeed = ({ activities, isLoading, isError }: RecentActivityFeedProps) => {
+  const activityColors = useActivityColors()
+
   const renderBody = () => {
     if (isLoading) return <LoadingBody />
 
@@ -147,7 +155,7 @@ export const RecentActivityFeed = ({ activities, isLoading, isError }: RecentAct
                 '&:hover': { backgroundColor: 'action.hover' }
               }}
             >
-              <ActivityIcon action={activity.action} />
+              <ActivityIcon action={activity.action} color={activityColors[activity.action]} />
               <Box sx={{ minWidth: 0, flex: 1 }}>
                 <Stack
                   direction='row'

@@ -1,21 +1,10 @@
-import { Avatar, Box, Divider, InputAdornment, List, ListItemButton, ListItemAvatar, ListItemText, MenuItem, Stack, TextField, Typography } from '@mui/material'
+import { Box, Divider, InputAdornment, List, ListItemButton, ListItemAvatar, ListItemText, MenuItem, Stack, TextField, Typography } from '@mui/material'
 import SearchIcon from '@mui/icons-material/Search'
 import type { Lead } from '@/shared/types'
-import { StatusChip } from '@/shared/components'
+import { InitialsAvatar, StatusChip } from '@/shared/components'
 import { formatRelative } from '@/shared/utils/format'
 
 import { LEAD_STATUS_FILTER_OPTIONS } from '@/modules/leads/constants/leadStatus'
-
-const buildInitials = (name: string | null): string => {
-  if (!name) return '?'
-  return name
-    .split(' ')
-    .filter(Boolean)
-    .map((part) => part[0])
-    .slice(0, 2)
-    .join('')
-    .toUpperCase()
-}
 
 interface LeadInboxProps {
   leads: Lead[]
@@ -91,7 +80,7 @@ export const LeadInbox = ({
                     }}
                   >
                     <ListItemAvatar>
-                      <Avatar sx={{ bgcolor: 'primary.light' }}>{buildInitials(lead.name)}</Avatar>
+                      <InitialsAvatar name={lead.name} />
                     </ListItemAvatar>
                     <ListItemText
                       primary={

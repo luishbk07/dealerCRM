@@ -1,3 +1,10 @@
+import type { DealerThemeMode } from '@/shared/types'
+import { baseTheme } from '@/app/theme'
+import {
+  DEFAULT_DEALER_THEME,
+  normalizeHexColor
+} from '@/shared/utils/dealerThemeUtils'
+
 export interface DealerSettingsFormValues {
   name: string
   email: string
@@ -9,12 +16,19 @@ export interface DealerSettingsFormValues {
   zipCode: string
   country: string
   website: string
+  primaryColor: string
+  secondaryColor: string
+  accentColor: string
+  theme: DealerThemeMode
 }
 
 export interface DealerSettingsFormErrors {
   name?: string
   email?: string
   website?: string
+  primaryColor?: string
+  secondaryColor?: string
+  accentColor?: string
 }
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -56,6 +70,21 @@ export const validateDealerSettingsForm = (
     }
   }
 
+  const primaryColor = normalizeHexColor(values.primaryColor)
+  if (!primaryColor) {
+    errors.primaryColor = 'Ingresa un color HEX válido para el color primario.'
+  }
+
+  const secondaryColor = normalizeHexColor(values.secondaryColor)
+  if (!secondaryColor) {
+    errors.secondaryColor = 'Ingresa un color HEX válido para el color secundario.'
+  }
+
+  const accentColor = normalizeHexColor(values.accentColor)
+  if (!accentColor) {
+    errors.accentColor = 'Ingresa un color HEX válido para el color de acento.'
+  }
+
   return {
     valid: Object.keys(errors).length === 0,
     errors,
@@ -64,7 +93,13 @@ export const validateDealerSettingsForm = (
 }
 
 export const getDealerSettingsValidationMessage = (errors: DealerSettingsFormErrors): string | null =>
-  errors.name ?? errors.email ?? errors.website ?? null
+  errors.name
+  ?? errors.email
+  ?? errors.website
+  ?? errors.primaryColor
+  ?? errors.secondaryColor
+  ?? errors.accentColor
+  ?? null
 
 export const dealerToFormValues = (
   dealer: {
@@ -78,6 +113,10 @@ export const dealerToFormValues = (
     zipCode: string | null
     country: string | null
     website: string | null
+    primaryColor?: string | null
+    secondaryColor?: string | null
+    accentColor?: string | null
+    theme?: DealerThemeMode | null
   },
   fallbackEmail?: string
 ): DealerSettingsFormValues => ({
@@ -90,5 +129,9 @@ export const dealerToFormValues = (
   state: dealer.state ?? '',
   zipCode: dealer.zipCode ?? '',
   country: dealer.country ?? '',
-  website: dealer.website ?? ''
+  website: dealer.website ?? '',
+  primaryColor: dealer.primaryColor ?? baseTheme.palette.primary.main,
+  secondaryColor: dealer.secondaryColor ?? baseTheme.palette.secondary.main,
+  accentColor: dealer.accentColor ?? baseTheme.palette.warning.main,
+  theme: dealer.theme ?? DEFAULT_DEALER_THEME
 })

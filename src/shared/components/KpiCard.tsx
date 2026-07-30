@@ -1,4 +1,4 @@
-import { Card, CardContent, Stack, Typography, Box } from '@mui/material'
+import { Card, CardContent, Stack, Typography, Box, useTheme } from '@mui/material'
 import type { ReactNode } from 'react'
 
 interface KpiCardProps {
@@ -10,7 +10,9 @@ interface KpiCardProps {
   trend?: string
 }
 
-export const KpiCard = ({ label, value, description, icon, accentColor = '#2563EB', trend }: KpiCardProps) => {
+export const KpiCard = ({ label, value, description, icon, accentColor, trend }: KpiCardProps) => {
+  const theme = useTheme()
+  const resolvedAccent = accentColor ?? theme.palette.primary.main
   const secondaryText = description ?? trend
 
   return (
@@ -48,8 +50,8 @@ export const KpiCard = ({ label, value, description, icon, accentColor = '#2563E
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              backgroundColor: `${accentColor}1A`,
-              color: accentColor
+              backgroundColor: `${resolvedAccent}1A`,
+              color: resolvedAccent
             }}
           >
             {icon}

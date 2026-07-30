@@ -2,6 +2,7 @@ import {
   Box,
   Button,
   Chip,
+  Divider,
   Stack,
   TextField,
   Typography
@@ -9,9 +10,8 @@ import {
 import Grid2 from '@mui/material/Grid2'
 import SaveIcon from '@mui/icons-material/Save'
 import type { Dealer } from '@/shared/types'
-import { dealerSettingsService } from '../services/dealerSettingsService'
 import type { DealerSettingsFormErrors, DealerSettingsFormValues } from '../utils/dealerSettingsValidation'
-import { DealerImageUpload } from './DealerImageUpload'
+import { DealerBrandingSection } from './DealerBrandingSection'
 
 interface DealerSettingsFormProps {
   dealer: Dealer
@@ -38,32 +38,31 @@ export const DealerSettingsForm = ({
   onUploadLogo,
   onUploadBanner
 }: DealerSettingsFormProps) => {
-  const logoUrl = dealerSettingsService.resolveLogoUrl(dealer.logoPath)
-  const bannerUrl = dealerSettingsService.resolveBannerUrl(dealer.bannerPath)
-
   const setField = <K extends keyof DealerSettingsFormValues>(key: K, value: DealerSettingsFormValues[K]) => {
     onChange({ ...values, [key]: value })
   }
 
   return (
     <Stack spacing={3}>
-      <DealerImageUpload
-        label='Logo'
-        helperText='Formato recomendado: cuadrado, PNG o JPG.'
-        imageUrl={logoUrl}
-        uploading={uploadingLogo}
-        aspectRatio='1 / 1'
-        onUpload={onUploadLogo}
+      <DealerBrandingSection
+        dealer={dealer}
+        values={values}
+        errors={errors}
+        uploadingLogo={uploadingLogo}
+        uploadingBanner={uploadingBanner}
+        onChange={onChange}
+        onUploadLogo={onUploadLogo}
+        onUploadBanner={onUploadBanner}
       />
 
-      <DealerImageUpload
-        label='Banner'
-        helperText='Imagen horizontal para tu perfil público.'
-        imageUrl={bannerUrl}
-        uploading={uploadingBanner}
-        aspectRatio='16 / 5'
-        onUpload={onUploadBanner}
-      />
+      <Box>
+        <Typography variant='h6' sx={{ mb: 0.5 }}>
+          Información de contacto
+        </Typography>
+        <Typography variant='body2' color='text.secondary'>
+          Datos visibles en tu sitio público y en comunicaciones con clientes.
+        </Typography>
+      </Box>
 
       <Grid2 container spacing={2}>
         <Grid2 size={{ xs: 12, md: 6 }}>
@@ -180,6 +179,8 @@ export const DealerSettingsForm = ({
           </Box>
         </Grid2>
       </Grid2>
+
+      <Divider />
 
       <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
         <Button

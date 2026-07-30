@@ -27,7 +27,11 @@ const toPublicProfile = (dealer: Dealer): PublicDealerProfile => ({
   address: dealer.address,
   website: dealer.website,
   logoUrl: getDealerLogoUrl(dealer),
-  bannerUrl: getDealerBannerUrl(dealer)
+  bannerUrl: getDealerBannerUrl(dealer),
+  primaryColor: dealer.primaryColor,
+  secondaryColor: dealer.secondaryColor,
+  accentColor: dealer.accentColor,
+  theme: dealer.theme
 })
 
 const resolveImageUrls = (vehicle: VehicleWithImages): string[] => {

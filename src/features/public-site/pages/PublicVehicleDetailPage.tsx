@@ -14,6 +14,7 @@ import { PublicVehicleContactForm } from '../components/PublicVehicleContactForm
 import { PublicVehicleDetailSidebar } from '../components/PublicVehicleDetailSidebar'
 import { PublicRelatedVehicles } from '../components/PublicRelatedVehicles'
 import { PublicDealerFooter } from '../components/PublicDealerFooter'
+import { PublicDealerThemeShell } from '../components/PublicDealerThemeShell'
 import { usePublicPageMeta } from '../hooks/usePublicPageMeta'
 import { usePublicRelatedVehicles, usePublicVehicleDetail } from '../hooks/usePublicVehicleDetail'
 import {
@@ -101,8 +102,9 @@ export const PublicVehicleDetailPage = () => {
   const galleryAlt = vehicle.year ? `${vehicleTitle} ${vehicle.year}` : vehicleTitle
 
   return (
-    <Box sx={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: 'background.default' }}>
-      <PublicSiteHeader dealer={profile} dealerSlug={pageContext.dealerSlug} />
+    <PublicDealerThemeShell profile={profile}>
+      <Box sx={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: 'background.default' }}>
+        <PublicSiteHeader dealer={profile} dealerSlug={pageContext.dealerSlug} />
 
       <Container maxWidth='lg' sx={{ py: { xs: 3, md: 5 }, flexGrow: 1 }}>
         <Grid container spacing={4}>
@@ -185,6 +187,7 @@ export const PublicVehicleDetailPage = () => {
       </Container>
 
       <PublicDealerFooter dealer={profile} />
-    </Box>
+      </Box>
+    </PublicDealerThemeShell>
   )
 }

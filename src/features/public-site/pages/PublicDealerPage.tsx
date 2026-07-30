@@ -8,6 +8,7 @@ import { paths } from '@/app/routes/paths'
 import { formatNumber } from '@/shared/utils/format'
 import { PublicDealerHero } from '../components/PublicDealerHero'
 import { PublicDealerFooter } from '../components/PublicDealerFooter'
+import { PublicDealerThemeShell } from '../components/PublicDealerThemeShell'
 import { PublicVehicleCard, PublicVehicleFilters } from '../components/PublicVehicleSection'
 import { usePageMeta } from '../hooks/usePageMeta'
 import { usePublicDealer } from '../hooks/usePublicDealer'
@@ -87,8 +88,9 @@ export const PublicDealerPage = () => {
   }
 
   return (
-    <Box sx={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: 'background.default' }}>
-      <PublicDealerHero dealer={profile} />
+    <PublicDealerThemeShell profile={profile}>
+      <Box sx={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: 'background.default' }}>
+        <PublicDealerHero dealer={profile} />
 
       <Container maxWidth='lg' sx={{ py: { xs: 4, md: 5 }, flexGrow: 1 }}>
         <Stack spacing={1} sx={{ mb: 3 }}>
@@ -160,6 +162,7 @@ export const PublicDealerPage = () => {
       </Container>
 
       <PublicDealerFooter dealer={profile} />
-    </Box>
+      </Box>
+    </PublicDealerThemeShell>
   )
 }

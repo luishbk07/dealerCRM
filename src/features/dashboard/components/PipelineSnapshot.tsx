@@ -1,4 +1,4 @@
-import { Box, Card, CardContent, LinearProgress, Stack, Typography } from '@mui/material'
+import { Box, Card, CardContent, LinearProgress, Stack, Typography, useTheme } from '@mui/material'
 import type { LeadConversionPoint } from '@/shared/types'
 import {
   LEAD_STATUS_CONTACTED,
@@ -13,16 +13,17 @@ interface PipelineSnapshotProps {
   data: LeadConversionPoint[]
 }
 
-const DASHBOARD_PIPELINE_STAGES = [
-  { status: LEAD_STATUS_NEW, label: 'Nuevo', color: '#0EA5E9' },
-  { status: LEAD_STATUS_CONTACTED, label: 'Contactado', color: '#2563EB' },
-  { status: LEAD_STATUS_QUALIFIED, label: 'Calificado', color: '#F59E0B' },
-  { status: LEAD_STATUS_NEGOTIATING, label: 'Negociando', color: '#8B5CF6' },
-  { status: LEAD_STATUS_SOLD, label: 'Vendido', color: '#10B981' },
-  { status: LEAD_STATUS_LOST, label: 'Perdido', color: '#94A3B8' }
-] as const
-
 export const PipelineSnapshot = ({ data }: PipelineSnapshotProps) => {
+  const theme = useTheme()
+  const pipelineStages = [
+    { status: LEAD_STATUS_NEW, label: 'Nuevo', color: theme.palette.info.main },
+    { status: LEAD_STATUS_CONTACTED, label: 'Contactado', color: theme.palette.primary.main },
+    { status: LEAD_STATUS_QUALIFIED, label: 'Calificado', color: theme.palette.warning.main },
+    { status: LEAD_STATUS_NEGOTIATING, label: 'Negociando', color: theme.palette.secondary.main },
+    { status: LEAD_STATUS_SOLD, label: 'Vendido', color: theme.palette.success.main },
+    { status: LEAD_STATUS_LOST, label: 'Perdido', color: theme.palette.text.disabled }
+  ] as const
+
   const total = data.reduce((sum, point) => sum + point.count, 0)
   const countByStatus = new Map(data.map((point) => [point.status, point.count]))
 
@@ -53,7 +54,7 @@ export const PipelineSnapshot = ({ data }: PipelineSnapshotProps) => {
           </Box>
         ) : (
           <Stack spacing={2.25}>
-            {DASHBOARD_PIPELINE_STAGES.map((stage) => {
+            {pipelineStages.map((stage) => {
               const count = countByStatus.get(stage.status) ?? 0
               const percent = total === 0 ? 0 : Math.round((count / total) * 100)
 

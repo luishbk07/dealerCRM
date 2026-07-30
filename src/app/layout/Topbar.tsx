@@ -8,6 +8,8 @@ import type { User } from '@/shared/types'
 import { useAuth } from '@/features/auth/context/AuthContext'
 import { paths } from '@/app/routes/paths'
 import { SIDEBAR_WIDTH } from './Sidebar'
+import { ThemeModeToggle } from './ThemeModeToggle'
+import { buildInitials } from '@/shared/utils/initials'
 
 interface TopbarProps {
   user: User
@@ -34,12 +36,7 @@ export const Topbar = ({ user, logoUrl, onToggleMobile }: TopbarProps) => {
     navigate(paths.login, { replace: true })
   }
 
-  const initials = user.fullName
-    .split(' ')
-    .map((part) => part[0])
-    .slice(0, 2)
-    .join('')
-    .toUpperCase()
+  const initials = buildInitials(user.fullName)
 
   return (
     <AppBar
@@ -69,7 +66,8 @@ export const Topbar = ({ user, logoUrl, onToggleMobile }: TopbarProps) => {
             </Typography>
           </Box>
         </Stack>
-        <Stack direction='row' alignItems='center' spacing={1}>
+        <Stack direction='row' alignItems='center' spacing={0.5}>
+          <ThemeModeToggle />
           <IconButton onClick={(event) => setAnchorEl(event.currentTarget)} sx={{ p: 0.5 }}>
             <Avatar
               src={logoUrl ?? undefined}
@@ -78,6 +76,7 @@ export const Topbar = ({ user, logoUrl, onToggleMobile }: TopbarProps) => {
                 width: 36,
                 height: 36,
                 bgcolor: 'primary.main',
+                color: 'primary.contrastText',
                 '& img': { objectFit: 'contain', p: logoUrl ? 0.25 : 0 }
               }}
             >

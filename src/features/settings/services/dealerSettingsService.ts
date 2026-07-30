@@ -1,4 +1,5 @@
 import type { Dealer, UpdateDealerInput } from '@/shared/types'
+import { normalizeHexColor } from '@/shared/utils/dealerThemeUtils'
 import { dealerRepository, STORAGE_BUCKETS, storageRepository } from '@/shared/repositories'
 import { activityService } from '@/shared/services/activityService'
 import { prepareImageForUpload } from '@/features/vehicles/services/storageService'
@@ -45,7 +46,11 @@ export const dealerSettingsService = {
       state: values.state.trim() || null,
       zipCode: values.zipCode.trim() || null,
       country: values.country.trim() || null,
-      website: normalizedWebsite
+      website: normalizedWebsite,
+      primaryColor: normalizeHexColor(values.primaryColor),
+      secondaryColor: normalizeHexColor(values.secondaryColor),
+      accentColor: normalizeHexColor(values.accentColor),
+      theme: values.theme
     }
     return wrapCall(async () => {
       const dealer = await dealerRepository.update(dealerId, input)

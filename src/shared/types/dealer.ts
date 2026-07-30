@@ -1,3 +1,12 @@
+export type DealerThemeMode = 'light' | 'dark' | 'system'
+
+export interface DealerBranding {
+  primaryColor: string | null
+  secondaryColor: string | null
+  accentColor: string | null
+  theme: DealerThemeMode | null
+}
+
 export interface Dealer {
   id: string
   ownerId: string
@@ -14,6 +23,10 @@ export interface Dealer {
   slug: string | null
   logoPath: string | null
   bannerPath: string | null
+  primaryColor: string | null
+  secondaryColor: string | null
+  accentColor: string | null
+  theme: DealerThemeMode | null
   isActive: boolean
   createdAt: string
 }
@@ -31,4 +44,8 @@ export interface UpdateDealerInput {
   website?: string | null
   logoPath?: string | null
   bannerPath?: string | null
+  primaryColor?: string | null
+  secondaryColor?: string | null
+  accentColor?: string | null
+  theme?: DealerThemeMode | null
 }

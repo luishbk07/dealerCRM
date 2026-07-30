@@ -3,7 +3,8 @@ import {
   Button,
   Container,
   Stack,
-  Typography
+  Typography,
+  useTheme
 } from '@mui/material'
 import LanguageOutlinedIcon from '@mui/icons-material/LanguageOutlined'
 import PhoneOutlinedIcon from '@mui/icons-material/PhoneOutlined'
@@ -17,9 +18,11 @@ interface PublicDealerHeroProps {
   dealer: PublicDealerProfile
 }
 
-const PLACEHOLDER_BANNER = 'linear-gradient(135deg, #1D4ED8 0%, #2563EB 45%, #0EA5E9 100%)'
+const PLACEHOLDER_BANNER = (primaryDark: string, primaryMain: string, primaryLight: string) =>
+  `linear-gradient(135deg, ${primaryDark} 0%, ${primaryMain} 45%, ${primaryLight} 100%)`
 
 export const PublicDealerHero = ({ dealer }: PublicDealerHeroProps) => {
+  const theme = useTheme()
   const websiteUrl = normalizeWebsiteUrl(dealer.website)
   const whatsappLink = buildWhatsAppLink(
     dealer.whatsapp ?? dealer.phone,
@@ -31,7 +34,13 @@ export const PublicDealerHero = ({ dealer }: PublicDealerHeroProps) => {
       sx={{
         position: 'relative',
         color: 'common.white',
-        background: dealer.bannerUrl ? undefined : PLACEHOLDER_BANNER,
+        background: dealer.bannerUrl
+          ? undefined
+          : PLACEHOLDER_BANNER(
+              theme.palette.primary.dark,
+              theme.palette.primary.main,
+              theme.palette.primary.light
+            ),
         backgroundImage: dealer.bannerUrl ? `url(${dealer.bannerUrl})` : undefined,
         backgroundSize: 'cover',
         backgroundPosition: 'center'

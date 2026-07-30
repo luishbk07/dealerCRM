@@ -1,3 +1,5 @@
+import type { DealerThemeMode } from '@/shared/types'
+
 export interface PublicDealerProfile {
   name: string
   city: string | null
@@ -7,6 +9,10 @@ export interface PublicDealerProfile {
   website: string | null
   logoUrl: string | null
   bannerUrl: string | null
+  primaryColor: string | null
+  secondaryColor: string | null
+  accentColor: string | null
+  theme: DealerThemeMode | null
 }
 
 export interface PublicDealerContext {

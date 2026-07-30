@@ -1,4 +1,4 @@
-import { Box, Card, CardContent, Stack, Typography } from '@mui/material'
+import { Box, Card, CardContent, Stack, Typography, useTheme } from '@mui/material'
 import TrendingUpOutlinedIcon from '@mui/icons-material/TrendingUpOutlined'
 import type { MonthlySalesPoint } from '@/shared/types'
 import { formatCurrency, formatMonthLabel } from '@/shared/utils/format'
@@ -19,6 +19,8 @@ const formatCompactCurrency = (value: number): string => {
 }
 
 export const SalesTrendChart = ({ data }: SalesTrendChartProps) => {
+  const theme = useTheme()
+  const chartColor = theme.palette.primary.main
   const hasData = hasSalesTrendData(data)
 
   if (!hasData) {
@@ -116,8 +118,8 @@ export const SalesTrendChart = ({ data }: SalesTrendChartProps) => {
 
             <defs>
               <linearGradient id='salesTrendFill' x1='0' y1='0' x2='0' y2='1'>
-                <stop offset='0%' stopColor='#2563EB' stopOpacity={0.18} />
-                <stop offset='100%' stopColor='#2563EB' stopOpacity={0.02} />
+                <stop offset='0%' stopColor={chartColor} stopOpacity={0.18} />
+                <stop offset='100%' stopColor={chartColor} stopOpacity={0.02} />
               </linearGradient>
             </defs>
 
@@ -125,7 +127,7 @@ export const SalesTrendChart = ({ data }: SalesTrendChartProps) => {
             <path
               d={linePath}
               fill='none'
-              stroke='#2563EB'
+              stroke={chartColor}
               strokeWidth={2.5}
               strokeLinecap='round'
               strokeLinejoin='round'
@@ -133,7 +135,7 @@ export const SalesTrendChart = ({ data }: SalesTrendChartProps) => {
 
             {points.map((point) => (
               <g key={point.monthStart}>
-                <circle cx={point.x} cy={point.y} r={4.5} fill='#2563EB' stroke='#fff' strokeWidth={2} />
+                <circle cx={point.x} cy={point.y} r={4.5} fill={chartColor} stroke='#fff' strokeWidth={2} />
                 <text
                   x={point.x}
                   y={CHART_HEIGHT - 12}

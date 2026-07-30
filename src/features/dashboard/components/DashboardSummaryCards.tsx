@@ -3,6 +3,7 @@ import DirectionsCarFilledOutlinedIcon from '@mui/icons-material/DirectionsCarFi
 import FiberNewOutlinedIcon from '@mui/icons-material/FiberNewOutlined'
 import HourglassEmptyOutlinedIcon from '@mui/icons-material/HourglassEmptyOutlined'
 import PaidOutlinedIcon from '@mui/icons-material/PaidOutlined'
+import { useTheme } from '@mui/material'
 import { KpiCard } from '@/shared/components'
 import { formatCurrency, formatNumber } from '@/shared/utils/format'
 import type { DealerStats } from '@/shared/types'
@@ -14,6 +15,9 @@ interface DashboardSummaryCardsProps {
 }
 
 export const DashboardSummaryCards = ({ stats, pendingLeads }: DashboardSummaryCardsProps) => {
+  const theme = useTheme()
+  const { primary, info, warning, success } = theme.palette
+
   return (
     <Grid container spacing={2.5} sx={{ mb: 3 }}>
       <Grid size={{ xs: 12, sm: 6, md: 3 }}>
@@ -22,7 +26,7 @@ export const DashboardSummaryCards = ({ stats, pendingLeads }: DashboardSummaryC
           value={formatNumber(stats.activeVehicles)}
           description='Disponibles para vender'
           icon={<DirectionsCarFilledOutlinedIcon />}
-          accentColor='#2563EB'
+          accentColor={primary.main}
         />
       </Grid>
       <Grid size={{ xs: 12, sm: 6, md: 3 }}>
@@ -31,7 +35,7 @@ export const DashboardSummaryCards = ({ stats, pendingLeads }: DashboardSummaryC
           value={formatNumber(stats.newLeads)}
           description='Últimas 24 horas'
           icon={<FiberNewOutlinedIcon />}
-          accentColor='#0EA5E9'
+          accentColor={info.main}
         />
       </Grid>
       <Grid size={{ xs: 12, sm: 6, md: 3 }}>
@@ -40,7 +44,7 @@ export const DashboardSummaryCards = ({ stats, pendingLeads }: DashboardSummaryC
           value={formatNumber(pendingLeads)}
           description='Requieren seguimiento'
           icon={<HourglassEmptyOutlinedIcon />}
-          accentColor='#F59E0B'
+          accentColor={warning.main}
         />
       </Grid>
       <Grid size={{ xs: 12, sm: 6, md: 3 }}>
@@ -49,7 +53,7 @@ export const DashboardSummaryCards = ({ stats, pendingLeads }: DashboardSummaryC
           value={formatCurrency(stats.monthlyRevenue)}
           description={formatSalesCountLabel(stats.monthlySalesCount)}
           icon={<PaidOutlinedIcon />}
-          accentColor='#10B981'
+          accentColor={success.main}
         />
       </Grid>
     </Grid>

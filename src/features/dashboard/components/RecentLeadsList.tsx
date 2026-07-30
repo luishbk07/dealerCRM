@@ -1,6 +1,5 @@
 import {
   Alert,
-  Avatar,
   Box,
   Button,
   Card,
@@ -16,7 +15,7 @@ import {
 } from '@mui/material'
 import { useNavigate } from 'react-router-dom'
 import type { Lead, Vehicle } from '@/shared/types'
-import { StatusChip } from '@/shared/components'
+import { InitialsAvatar, StatusChip } from '@/shared/components'
 import { formatRelative } from '@/shared/utils/format'
 import { paths } from '@/app/routes/paths'
 import { withListReturn } from '@/shared/utils/listNavigation'
@@ -28,17 +27,6 @@ interface RecentLeadsListProps {
   totalLeads: number
   isLoading?: boolean
   isError?: boolean
-}
-
-const buildInitials = (name: string | null): string => {
-  if (!name) return '?'
-  return name
-    .split(' ')
-    .filter(Boolean)
-    .map((part) => part[0])
-    .slice(0, 2)
-    .join('')
-    .toUpperCase()
 }
 
 const LoadingBody = () => (
@@ -109,9 +97,7 @@ export const RecentLeadsList = ({ leads, vehicleById, totalLeads, isLoading, isE
                 aria-label={`Ver lead ${lead.name ?? 'sin nombre'}`}
               >
                 <ListItemAvatar>
-                  <Avatar sx={{ bgcolor: 'primary.light', color: 'primary.dark', fontWeight: 600 }}>
-                    {buildInitials(lead.name)}
-                  </Avatar>
+                  <InitialsAvatar name={lead.name} />
                 </ListItemAvatar>
                 <ListItemText
                   primary={

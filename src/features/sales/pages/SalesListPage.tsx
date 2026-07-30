@@ -1,4 +1,4 @@
-import { Box, Card, CardContent, Pagination, Stack, Typography } from '@mui/material'
+import { Box, Card, CardContent, Pagination, Stack, Typography, useTheme } from '@mui/material'
 import Grid from '@mui/material/Grid2'
 import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
@@ -34,6 +34,8 @@ const hasActiveFilters = (filters: SalesFiltersState): boolean =>
 
 export const SalesListPage = () => {
   const navigate = useNavigate()
+  const theme = useTheme()
+  const { primary, secondary, success, warning } = theme.palette
   const [filters, setFilters] = useState<SalesFiltersState>(INITIAL_FILTERS)
   const [page, setPage] = useState(0)
 
@@ -109,7 +111,7 @@ export const SalesListPage = () => {
             label='Ventas del mes'
             value={summary?.monthlySalesCount ?? 0}
             icon={<PaidOutlinedIcon />}
-            accentColor='#10B981'
+            accentColor={success.main}
             trend={summary && summary.monthlyRevenue > 0 ? formatCurrency(summary.monthlyRevenue) : undefined}
           />
         </Grid>
@@ -118,7 +120,7 @@ export const SalesListPage = () => {
             label='Ingresos acumulados'
             value={formatCurrency(summary?.totalRevenue ?? 0)}
             icon={<TrendingUpOutlinedIcon />}
-            accentColor='#2563EB'
+            accentColor={primary.main}
           />
         </Grid>
         <Grid size={{ xs: 12, sm: 6, md: 3 }}>
@@ -126,7 +128,7 @@ export const SalesListPage = () => {
             label='Ticket promedio'
             value={formatCurrency(summary?.averagePrice ?? 0)}
             icon={<ReceiptLongOutlinedIcon />}
-            accentColor='#F59E0B'
+            accentColor={warning.main}
           />
         </Grid>
         <Grid size={{ xs: 12, sm: 6, md: 3 }}>
@@ -134,7 +136,7 @@ export const SalesListPage = () => {
             label='Total de ventas'
             value={summary?.totalSales ?? 0}
             icon={<ShoppingCartOutlinedIcon />}
-            accentColor='#8B5CF6'
+            accentColor={secondary.main}
           />
         </Grid>
       </Grid>

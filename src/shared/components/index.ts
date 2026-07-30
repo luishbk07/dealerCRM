@@ -1,3 +1,4 @@
+export { InitialsAvatar } from './InitialsAvatar'
 export { PageHeader } from './PageHeader'
 export { StatusChip } from './StatusChip'
 export { LoadingState } from './LoadingState'

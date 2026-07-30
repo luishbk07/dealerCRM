@@ -1,5 +1,8 @@
 import { supabase } from '@/shared/services/supabase'
-import type { Dealer, UpdateDealerInput } from '@/shared/types'
+import type { Dealer, DealerThemeMode, UpdateDealerInput } from '@/shared/types'
+
+const isDealerThemeMode = (value: string | null): value is DealerThemeMode =>
+  value === 'light' || value === 'dark' || value === 'system'
 
 interface DealerRow {
   id: string
@@ -17,13 +20,18 @@ interface DealerRow {
   slug: string | null
   logo_path: string | null
   banner_path: string | null
+  primary_color: string | null
+  secondary_color: string | null
+  accent_color: string | null
+  theme: string | null
   is_active: boolean | null
   created_at: string
 }
 
 const DEALER_COLUMNS = `
   id, owner_id, name, email, phone, whatsapp, address, city, state, zip_code,
-  country, website, slug, logo_path, banner_path, is_active, created_at
+  country, website, slug, logo_path, banner_path, primary_color, secondary_color,
+  accent_color, theme, is_active, created_at
 `
 
 const mapRow = (row: DealerRow): Dealer => ({
@@ -42,6 +50,10 @@ const mapRow = (row: DealerRow): Dealer => ({
   slug: row.slug,
   logoPath: row.logo_path,
   bannerPath: row.banner_path,
+  primaryColor: row.primary_color,
+  secondaryColor: row.secondary_color,
+  accentColor: row.accent_color,
+  theme: isDealerThemeMode(row.theme) ? row.theme : null,
   isActive: Boolean(row.is_active),
   createdAt: row.created_at
 })
@@ -58,7 +70,11 @@ const mapUpdateInput = (input: UpdateDealerInput): Partial<DealerRow> => ({
   ...(input.country !== undefined ? { country: input.country } : {}),
   ...(input.website !== undefined ? { website: input.website } : {}),
   ...(input.logoPath !== undefined ? { logo_path: input.logoPath } : {}),
-  ...(input.bannerPath !== undefined ? { banner_path: input.bannerPath } : {})
+  ...(input.bannerPath !== undefined ? { banner_path: input.bannerPath } : {}),
+  ...(input.primaryColor !== undefined ? { primary_color: input.primaryColor } : {}),
+  ...(input.secondaryColor !== undefined ? { secondary_color: input.secondaryColor } : {}),
+  ...(input.accentColor !== undefined ? { accent_color: input.accentColor } : {}),
+  ...(input.theme !== undefined ? { theme: input.theme } : {})
 })
 
 export interface CreateDealerPayload {
